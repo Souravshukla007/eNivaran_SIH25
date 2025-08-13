@@ -136,8 +136,8 @@ eNivaran is an ML-powered road safety and civic issue reporting system designed 
 
 1.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/RohanChoudhary15/Esoc-X-Hack_DevBytes
-    cd Esoc-X-Hack_DevBytes
+    git clone https://github.com/Souravshukla007/eNivaran_Codex2.0_Dynamite_PS07.git
+    cd eNivaran_Codex2.0_Dynamite_PS07
     ```
 
 2.  **Environment Configuration:**
