@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Complaints - eNivaran</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+</head>
+<body>
+    <div id="user-data" data-user-id="{{ session.user_id }}" style="display: none;"></div>
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-person-check me-2" style="color: #6f42c1;"></i> eNivaran
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/complaints">Complaints</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/my_complaints">My Complaints</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/tools">Tools</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/leaderboard">Leaderboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="card shadow-sm border-0" data-aos="fade-up">
+            <div class="card-body p-4 p-md-5">
+                <h2 class="card-title mb-4">
+                    <i class="bi bi-person-lines-fill me-2"></i>My Submitted Complaints
+                </h2>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% if complaints %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Details & Image</th>
+                                <th>Date Submitted</th>
+                                <th>Status</th>
+                                <th>Admin Remarks</th>
+                                <th>Upvotes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for complaint in complaints if complaint %}
+                            <tr data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+                                <td>
+                                    <strong>#{{ complaint.id }}</strong>
+                                    {% if complaint.is_duplicate %}
+                                        <div class="small text-danger mt-1" title="This complaint was marked as a duplicate.">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                            Duplicate of #{{ complaint.original_report_id }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <p class="small mb-1">{{ complaint.text }}</p>
+                                    {% if complaint.image %}
+                                        <img src="data:image/jpeg;base64,{{ complaint.image }}" 
+                                             class="img-thumbnail" 
+                                             style="max-width: 100px; cursor: pointer;" 
+                                             data-bs-toggle="modal" 
+                                             data-bs-target="#imageModal{{ complaint.id }}" 
+                                             alt="Complaint evidence">
+                                    {% endif %}
+                                </td>
+                                <td class="small text-nowrap">
+                                    {% if complaint.submitted_at %}
+                                        {{ complaint.submitted_at.strftime('%b %d, %Y, %I:%M %p') }}
+                                    {% else %}
+                                        <span class="text-muted">Date not available</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set status_class = {
+                                        'Submitted': 'warning text-dark',
+                                        'Approved': 'success',
+                                        'Rejected': 'danger',
+                                        'On Hold': 'info text-dark',
+                                        'Completed': 'primary'
+                                    } %}
+                                    <span class="badge bg-{{ status_class.get(complaint.status, 'secondary') }}">
+                                        {{ complaint.status }}
+                                    </span>
+                                </td>
+                                <td class="small"><em>{{ complaint.remarks }}</em></td>
+                                <td class="small text-center fw-bold">
+                                    <i class="bi bi-hand-thumbs-up text-primary me-1"></i>
+                                    {{ complaint.upvotes }}
+                                </td>
+                                <td>
+                                    <!-- Chat button -->
+                                    <div class="chat-btn-container d-inline-block me-2">
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                data-complaint-id="{{ complaint.id }}"
+                                                onclick="openChat(this.dataset.complaintId)">
+                                            <i class="bi bi-chat-dots me-1"></i>Chat
+                                        </button>
+                                        <span class="chat-notification-badge" id="chat-badge-{{ complaint.id }}"></span>
+                                    </div>
+                                    
+                                    <!-- NEW: Feedback button -->
+                                    {% if complaint.status == 'Completed' or complaint.status == 'Approved' %}
+                                    <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#feedbackModal{{ complaint.id }}">
+                                        <i class="bi bi-star-fill me-1"></i>Feedback
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <div class="text-center text-muted p-5">
+                        <i class="bi bi-inbox display-1 mb-3 d-block"></i>
+                        <h4>You haven't submitted any complaints yet.</h4>
+                        <p class="mt-3">
+                            <a href="/tools" class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i>Submit a New Complaint
+                            </a>
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Moved here to fix layering issue) -->
+    {% for complaint in complaints if complaint %}
+        <!-- NEW: Feedback Modal (inside the loop, but outside the <tr>) -->
+        <div class="modal fade" id="feedbackModal{{ complaint.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Submit Feedback for Complaint #{{ complaint.id }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="feedbackForm{{ complaint.id }}" 
+                              onsubmit="handleFeedbackSubmit(event, {{ complaint.id }})">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Overall Experience</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="rating" id="ratingPositive{{ complaint.id }}" value="5" required>
+                                        <label class="form-check-label" for="ratingPositive{{ complaint.id }}">Positive</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="rating" id="ratingNegative{{ complaint.id }}" value="1">
+                                        <label class="form-check-label" for="ratingNegative{{ complaint.id }}">Negative</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="comment{{ complaint.id }}" class="form-label fw-bold">Comment</label>
+                                <textarea class="form-control" name="comment" id="comment{{ complaint.id }}" rows="3" placeholder="Share your experience..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="feedback_image{{ complaint.id }}" class="form-label fw-bold">Upload Latest Image (Optional)</label>
+                                <input class="form-control" type="file" name="feedback_image" id="feedback_image{{ complaint.id }}" accept="image/*">
+                                <div class="form-text">Upload an image of the resolved issue if you wish.</div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Image Modal -->
+        <div class="modal fade" id="imageModal{{ complaint.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Complaint #{{ complaint.id }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        {% if complaint.image %}
+                            <img src="data:image/jpeg;base64,{{ complaint.image }}" 
+                                 class="img-fluid" 
+                                 alt="Full size complaint evidence">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- Chat Modal -->
+    <div class="modal fade" id="chatModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chat - Complaint #<span id="chatComplaintId"></span></h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-danger me-2" id="newChatBtn" onclick="clearChat()">
+                            <i class="bi bi-plus-square"></i> New Chat
+                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="input-group mt-3">
+                        <input type="text" class="form-control" id="messageInput" 
+                               placeholder="Type your message..." 
+                               onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button class="btn btn-primary" onclick="sendMessage()">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="py-5 mt-5 bg-dark">
+        <div class="container text-center text-white">
+            <p class="mb-0"><small>© {{ now.year }} eNivaran. All Rights Reserved.</small></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Add this script block at the end of the body -->
+    <script>
+        async function handleFeedbackSubmit(event, complaintId) {
+            event.preventDefault();
+            const form = document.getElementById(`feedbackForm${complaintId}`);
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(`/submit_feedback/${complaintId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message || 'Feedback submitted successfully!');
+                    // Close the modal and reload the page to show updated status
+                    const modal = bootstrap.Modal.getInstance(document.getElementById(`feedbackModal${complaintId}`));
+                    modal.hide();
+                    window.location.reload();
+                } else {
+                    throw new Error(result.error || 'An unknown error occurred.');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+    </script>
+    
+    <!-- AI Chatbot Start -->
+    <div class="chatbot-fab" id="chatbot-fab">
+        <i class="bi bi-robot"></i>
+    </div>
+    <div class="chatbot-popup" id="chatbot-popup">
+        <div class="chatbot-header">
+            <span>eNivaran J.A.R.V.I.S</span>
+            <div class="actions">
+                <button id="chatbot-new-chat" title="New Chat"><i class="bi bi-plus-square"></i></button>
+                <button id="chatbot-close" title="Close"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chatbot-input">
+            <input type="file" id="chatbot-file-input" style="display: none;" accept="image/*,application/pdf">
+            <button class="upload-btn" id="chatbot-upload-btn" title="Upload File"><i class="bi bi-paperclip"></i></button>
+            <input type="text" id="chatbot-input-field" placeholder="Ask a question..." autocomplete="off">
+            <button class="send-btn" id="chatbot-send-btn"><i class="bi bi-send"></i></button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fab = document.getElementById('chatbot-fab');
+            const popup = document.getElementById('chatbot-popup');
+            const closeBtn = document.getElementById('chatbot-close');
+            const newChatBtn = document.getElementById('chatbot-new-chat');
+            const messagesContainer = document.getElementById('chatbot-messages');
+            const inputField = document.getElementById('chatbot-input-field');
+            const sendBtn = document.getElementById('chatbot-send-btn');
+            const uploadBtn = document.getElementById('chatbot-upload-btn');
+            const fileInput = document.getElementById('chatbot-file-input');
+            
+            // User-specific storage key
+            const userId = document.getElementById('user-data').dataset.userId;
+            const storageKey = `chatbot_history_user_${userId}`;
+            let conversation = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+            fab.addEventListener('click', () => popup.classList.toggle('open'));
+            closeBtn.addEventListener('click', () => popup.classList.remove('open'));
+
+            const addMessage = (text, sender, type = 'text') => {
+                const messageDiv = document.createElement('div');
+                if (type === 'typing') {
+                    messageDiv.className = 'chat-message-ai typing';
+                    messageDiv.textContent = 'AI is typing...';
+                    messageDiv.id = 'typing-indicator';
+                } else if (type === 'file') {
+                    messageDiv.className = 'chat-message-user';
+                    messageDiv.innerHTML = `<div class="chat-message-file-preview"><i class="bi bi-file-earmark-check"></i> <span>${text}</span></div>`;
+                } else {
+                    messageDiv.className = `chat-message-${sender}`;
+                    // Use innerHTML for AI to render lists, otherwise use textContent for security
+                    if (sender === 'ai') {
+                        messageDiv.innerHTML = formatResponseAsHTML(text);
+                    } else {
+                        messageDiv.textContent = text;
+                    }
+                }
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                return messageDiv;
+            };
+
+            const saveConversation = () => localStorage.setItem(storageKey, JSON.stringify(conversation));
+            const loadConversation = () => {
+                messagesContainer.innerHTML = '';
+                conversation.forEach(msg => addMessage(msg.text, msg.sender, msg.type));
+            };
+
+            // --- START: NEW HELPER FUNCTION ---
+            const formatResponseAsHTML = (text) => {
+                // Converts lines starting with * or - into an HTML list.
+                let html = '';
+                const lines = text.split('\n');
+                let inList = false;
+
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    // Check for markdown-style list items
+                    if (trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ')) {
+                        if (!inList) {
+                            html += '<ul>'; // Start the list
+                            inList = true;
+                        }
+                        html += `<li>${trimmedLine.substring(2)}</li>`; // Add the list item
+                    } else {
+                        if (inList) {
+                            html += '</ul>'; // End the list
+                            inList = false;
+                        }
+                        if (trimmedLine) {
+                            html += `<p>${trimmedLine}</p>`; // Wrap non-list lines in paragraphs
+                        }
+                    }
+                }
+
+                if (inList) { // Close any open list at the end
+                    html += '</ul>';
+                }
+                return html;
+            };
+            // --- END: NEW HELPER FUNCTION ---
+
+            const handleSendMessage = async () => {
+                const text = inputField.value.trim();
+                if (!text) return;
+
+                addMessage(text, 'user');
+                conversation.push({ sender: 'user', text: text, type: 'text' });
+                saveConversation();
+                inputField.value = '';
+                
+                addMessage('', 'ai', 'typing');
+
+                try {
+                    const response = await fetch('/chat/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ history: conversation.slice(0, -1), message: text })
+                    });
+                    
+                    document.getElementById('typing-indicator')?.remove();
+                    
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || 'Failed to get AI response.');
+                    }
+                    
+                    const data = await response.json();
+                    addMessage(data.response, 'ai');
+                    conversation.push({ sender: 'ai', text: data.response, type: 'text' });
+                    saveConversation();
+                } catch (error) {
+                    addMessage(`Error: ${error.message}`, 'ai');
+                }
+            };
+
+            const handleFileUpload = async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const fileMsg = addMessage(`Uploading ${file.name}...`, 'user', 'file');
+
+                try {
+                    const response = await fetch('/upload_chat_file', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error('Upload failed.');
+                    
+                    const data = await response.json();
+                    fileMsg.querySelector('span').textContent = data.message;
+                    const userMsgText = `I have uploaded a file named: ${data.filename}. Please acknowledge it.`;
+                    
+                    conversation.push({ sender: 'user', text: userMsgText, type: 'text' });
+                    saveConversation();
+                    
+                    addMessage('', 'ai', 'typing');
+                    
+                    const aiResponse = await fetch('/chat/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ history: conversation.slice(0, -1), message: userMsgText })
+                    });
+                    
+                    document.getElementById('typing-indicator')?.remove();
+                    
+                    if (!aiResponse.ok) throw new Error('AI response failed after upload.');
+                    const aiData = await aiResponse.json();
+                    addMessage(aiData.response, 'ai');
+                    conversation.push({ sender: 'ai', text: aiData.response, type: 'text' });
+                    saveConversation();
+                    
+                } catch (error) {
+                    fileMsg.querySelector('span').textContent = `Error: ${error.message}`;
+                    fileMsg.style.backgroundColor = '#f8d7da';
+                    fileMsg.style.color = '#721c24';
+                }
+            };
+
+            sendBtn.addEventListener('click', handleSendMessage);
+            inputField.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                    e.target.value = ''; // Reset file input
+                }
+            });
+            newChatBtn.addEventListener('click', () => {
+                if (confirm('Are you sure? This will clear the chat history.')) {
+                    conversation = [];
+                    saveConversation();
+                    loadConversation();
+                    const greeting = "Hello! I'm eNivaran J.A.R.V.I.S. How can I help you today?";
+                    addMessage(greeting, 'ai');
+                    conversation.push({ sender: 'ai', text: greeting, type: 'text' });
+                    saveConversation();
+                }
+            });
+
+            loadConversation();
+            if (conversation.length === 0) {
+                const greeting = "Hello! I'm eNivaran J.A.R.V.I.S. How can I help you today?";
+                addMessage(greeting, 'ai');
+                conversation.push({ sender: 'ai', text: greeting, type: 'text' });
+                saveConversation();
+            }
+        });
+    </script>
+    <!-- AI Chatbot End -->
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxLWJqA7cUy2QNz-Ucfg4c5o1SEBw1QTM",
+            authDomain: "enivaran-1e89f.firebaseapp.com",
+            databaseURL: "https://enivaran-1e89f-default-rtdb.firebaseio.com",
+            projectId: "enivaran-1e89f",
+            storageBucket: "enivaran-1e89f.firebasestorage.app",
+            messagingSenderId: "616471588971",
+            appId: "1:616471588971:web:142d14e0dfb2b74fd1812e",
+            measurementId: "G-78GR7H8XSL"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        let currentChatRef = null;
+        const chatModal = new bootstrap.Modal(document.getElementById('chatModal'));
+        const currentUserIdentifier = `user_${document.getElementById('user-data').dataset.userId}`;
+        
+        function openChat(complaintId) {
+            // Convert complaintId to number since data attributes are strings
+            complaintId = parseInt(complaintId, 10);
+            
+            // Immediately hide notification badge
+            const badge = document.querySelector(`#chat-badge-${complaintId}`);
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
+            
+            // Mark chat as read
+            fetch(`/chat/${complaintId}/mark_read`, { method: 'POST' })
+                .catch(err => console.error('Error marking chat as read:', err));
+            
+            document.getElementById('chatComplaintId').textContent = complaintId;
+            document.getElementById('chatMessages').innerHTML = '';
+            
+            // Unsubscribe from previous chat if any
+            if (currentChatRef) {
+                currentChatRef.off();
+            }
+            
+            // Load existing messages
+            fetch(`/chat/${complaintId}/messages`)
+                .then(response => response.json())
+                .then(messages => {
+                    if (messages && typeof messages === 'object') {
+                        const orderedMessages = Object.values(messages).sort((a, b) => 
+                            new Date(a.timestamp) - new Date(b.timestamp)
+                        );
+                        orderedMessages.forEach(addMessageToUI);
+                    }
+                });
+            
+            // Subscribe to new messages using 'value' listener for robust handling
+            currentChatRef = firebase.database().ref(`chats/${complaintId}/messages`);
+            currentChatRef.on('value', snapshot => {
+                const messagesDiv = document.getElementById('chatMessages');
+                messagesDiv.innerHTML = ''; // Clear previous messages
+                const messages = snapshot.val();
+                if (messages) {
+                    Object.values(messages)
+                          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                          .forEach(addMessageToUI);
+                } else {
+                    messagesDiv.innerHTML = '<div class="text-center text-muted p-3">No messages yet.</div>';
+                }
+            });
+            
+            chatModal.show();
+        }
+        
+        function addMessageToUI(message) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${message.sender_id === 'admin' ? 'admin' : 'user'}`;
+            
+            messageDiv.dataset.timestamp = message.timestamp;
+            messageDiv.innerHTML = `
+                <div class="sender">${message.sender_name}</div>
+                <div class="text">${message.text}</div>
+                <div class="timestamp">${new Date(message.timestamp).toLocaleString()}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+function clearChat() {
+    const complaintId = document.getElementById('chatComplaintId').textContent;
+    if (confirm('Are you sure you want to delete this chat history? This action cannot be undone.')) {
+        fetch(`/chat/${complaintId}/clear`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                document.getElementById('chatMessages').innerHTML = '<div class="text-center text-muted p-3">Chat history cleared.</div>';
+            } else {
+                alert('Failed to clear chat: ' + (result.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            alert('A network error occurred. Could not clear chat.');
+        });
+    }
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    const complaintId = document.getElementById('chatComplaintId').textContent;
+
+    if (text) {
+        // Optimistically add the message to the UI
+        const optimisticMessage = {
+            text: text,
+            sender_id: currentUserIdentifier, // Use the globally defined user ID
+            sender_name: 'You', // Or use a session variable for the actual name
+            timestamp: new Date().toISOString()
+        };
+        addMessageToUI(optimisticMessage);
+        
+        // Clear the input immediately
+        input.value = '';
+
+        // Send the message to the server in the background
+        fetch(`/chat/${complaintId}/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        })
+        .then(response => {
+            if (!response.ok) {
+                // If the server fails, we can optionally show an error or remove the optimistic message
+                console.error('Failed to send message to server.');
+                // Example: Find the optimistic message and mark it as failed
+                const optimisticElem = document.querySelector(`.chat-message[data-timestamp="${optimisticMessage.timestamp}"]`);
+                if (optimisticElem) {
+                    optimisticElem.style.opacity = '0.5';
+                    optimisticElem.title = 'Failed to send.';
+                }
+            }
+            return response.json();
+        })
+        .catch(err => {
+            console.error('Network error sending message:', err);
+        });
+    }
+}
+
+        // --- Notification Logic ---
+        function setupNotificationListener(complaintId) {
+            try {
+                const badge = document.querySelector(`#chat-badge-${complaintId}`);
+                if (!badge) return;
+
+                const chatRef = firebase.database().ref(`chats/${complaintId}`);
+                chatRef.on('value', snapshot => {
+                    try {
+                        const chatData = snapshot.val() || {};
+                        const messages = chatData.messages || {};
+                        const metadata = chatData.metadata || {};
+                        
+                        if (Object.keys(messages).length === 0) {
+                            badge.style.display = 'none';
+                            return;
+                        }
+
+                        const lastReadTimestamp = metadata[currentUserIdentifier]?.last_read || '1970-01-01T00:00:00.000Z';
+                        let unreadCount = 0;
+
+                        Object.values(messages).forEach(msg => {
+                            if (msg && msg.sender_id === 'admin' && msg.timestamp > lastReadTimestamp) {
+                                unreadCount++;
+                            }
+                        });
+
+                        badge.textContent = unreadCount.toString();
+                        badge.style.display = unreadCount > 0 ? 'block' : 'none';
+                    } catch (err) {
+                        console.error(`Error processing notifications for complaint ${complaintId}:`, err);
+                        badge.style.display = 'none';
+                    }
+                });
+            } catch (err) {
+                console.error(`Error setting up notification listener for complaint ${complaintId}:`, err);
+            }
+        }
+
+        // Initialize AOS and set up notification listeners for each chat button
+        document.addEventListener('DOMContentLoaded', () => {
+            AOS.init({ duration: 800, once: true, offset: 50 });
+            
+            // Fetch initial unread counts on page load
+            fetch('/chat/unread_counts')
+                .then(response => response.json())
+                .then(counts => {
+                    Object.entries(counts).forEach(([complaintId, count]) => {
+                        const badge = document.getElementById(`chat-badge-${complaintId}`);
+                        if (badge) {
+                            badge.textContent = count;
+                            badge.style.display = 'block';
+                        }
+                    });
+                })
+                .catch(err => console.error('Failed to fetch unread counts:', err));
+
+            // Set up individual listeners for each chat button
+            document.querySelectorAll('.chat-btn-container button').forEach(btn => {
+                const complaintId = btn.dataset.complaintId;
+                if (complaintId) {
+                    setupNotificationListener(complaintId);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

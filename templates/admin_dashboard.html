@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - eNivaran</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- React and ReactDOM -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+    <!-- AOS Animation Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .completion-details-form {
+            display: none; /* Hidden by default */
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+        }
+        .feedback-section {
+            background-color: #e9f7ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .feedback-row {
+            background-color: #f8f9fa; /* Light grey background for the whole row */
+        }
+        .feedback-row > td {
+            border-top: 2px solid #6f42c1 !important; /* A purple top border to separate it */
+        }
+    </style>
+    
+</head>
+<body>
+    <div id="app-root"></div>
+
+    <div id="server-data" 
+        data-complaints='{{ complaints | tojson | safe if complaints else "[]" }}'
+        data-messages='{{ get_flashed_messages(with_categories=true) | tojson | safe }}'
+        data-search-id='{{ search_id | tojson | safe if search_id else '""' }}'
+        data-search-city='{{ search_city | tojson | safe if search_city else '""' }}'
+        data-is-higher-admin='{{ session.is_higher_admin | tojson | safe }}'
+        style="display: none;">
+    </div>
+
+    <script type="text/javascript">
+        const serverDataEl = document.getElementById('server-data');
+        window.SERVER_DATA = {
+            complaints: JSON.parse(serverDataEl.dataset.complaints),
+            messages: JSON.parse(serverDataEl.dataset.messages),
+            searchId: JSON.parse(serverDataEl.dataset.searchId),
+            searchCity: JSON.parse(serverDataEl.dataset.searchCity),
+            isHigherAdmin: JSON.parse(serverDataEl.dataset.isHigherAdmin)
+        };
+    </script>
+</head>
+<body>
+    <div id="app-root"></div>
+
+    {% raw %}
+    <script type="text/babel">
+        // Main App Component for Admin Dashboard
+        const AdminDashboardApp = () => {
+            const navbarRef = React.useRef(null);
+            const [complaints, setComplaints] = React.useState(window.SERVER_DATA.complaints);
+            const [messages] = React.useState(window.SERVER_DATA.messages);
+            const [loading, setLoading] = React.useState({});
+            const [searchId] = React.useState(window.SERVER_DATA.searchId || '');
+            const [isHigherAdmin] = React.useState(window.SERVER_DATA.isHigherAdmin);
+            const [summaryComplaintId, setSummaryComplaintId] = React.useState('');
+            const [summary, setSummary] = React.useState('');
+            const [summaryLoading, setSummaryLoading] = React.useState(false);
+            const [showCompletionForm, setShowCompletionForm] = React.useState({});
+            
+            // --- NEW: State for city autocomplete filter ---
+            const [allCities, setAllCities] = React.useState([]);
+            const [searchCity, setSearchCity] = React.useState(window.SERVER_DATA.searchCity || '');
+            const [filteredCities, setFilteredCities] = React.useState([]);
+            const [showCityDropdown, setShowCityDropdown] = React.useState(false);
+            const [cityFocus, setCityFocus] = React.useState(-1);
+
+            const [notifications, setNotifications] = React.useState({});
+            const currentUserIdentifier = 'admin';
+
+            // --- City Autocomplete Logic ---
+            const handleCityInputChange = (e) => {
+                const val = e.target.value;
+                setSearchCity(val);
+                setCityFocus(-1);
+                if (!val) {
+                    setShowCityDropdown(false);
+                    return;
+                }
+                const matchingCities = allCities.filter(city => city.toLowerCase().includes(val.toLowerCase()));
+                setFilteredCities(matchingCities);
+                setShowCityDropdown(matchingCities.length > 0);
+            };
+
+            const handleCitySelect = (city) => {
+                setSearchCity(city);
+                setShowCityDropdown(false);
+            };
+
+            const handleCityKeyDown = (e) => {
+                if (!filteredCities.length) return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setCityFocus(prev => (prev < filteredCities.length - 1 ? prev + 1 : 0));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setCityFocus(prev => (prev > 0 ? prev - 1 : filteredCities.length - 1));
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (cityFocus > -1 && filteredCities[cityFocus]) {
+                        handleCitySelect(filteredCities[cityFocus]);
+                    } else {
+                        // Submit form on enter if no item is selected
+                        e.target.form.submit();
+                    }
+                } else if (e.key === 'Escape') {
+                    setShowCityDropdown(false);
+                }
+            };
+
+            // --- Notification Logic ---
+            React.useEffect(() => {
+                // Fetch initial unread counts on page load
+                fetch('/chat/unread_counts')
+                    .then(response => response.json())
+                    .then(counts => {
+                        setNotifications(prev => ({ ...prev, ...counts }));
+                    })
+                    .catch(err => console.error('Failed to fetch initial unread counts:', err));
+
+                const chatsRef = firebase.database().ref('chats');
+                const handleData = (snapshot) => {
+                    const allChats = snapshot.val() || {};
+                    const newNotifications = {};
+                    
+                    complaints.forEach(complaint => {
+                        const chatData = allChats[complaint.id];
+                        if (!chatData || !chatData.messages) {
+                            newNotifications[complaint.id] = 0;
+                            return;
+                        }
+
+                        const lastReadTimestamp = chatData.metadata?.[currentUserIdentifier]?.last_read || '1970-01-01T00:00:00.000Z';
+                        let unreadCount = 0;
+
+                        Object.values(chatData.messages).forEach(msg => {
+                            if (msg.sender_id !== currentUserIdentifier && msg.timestamp > lastReadTimestamp) {
+                                unreadCount++;
+                            }
+                        });
+                        newNotifications[complaint.id] = unreadCount;
+                    });
+                    setNotifications(newNotifications);
+                };
+
+                chatsRef.on('value', handleData);
+                return () => chatsRef.off('value', handleData);
+            }, [complaints]);
+
+            // --- Event Handlers ---
+            const handleDelete = (complaintId) => {
+                if (window.confirm(`Are you sure you want to permanently delete complaint #${complaintId}? This action cannot be undone.`)) {
+                    setLoading(prev => ({ ...prev, [`delete-${complaintId}`]: true }));
+
+                    fetch(`/delete_complaint/${complaintId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw new Error(err.error || 'Deletion failed') });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        window.location.reload(); // Reload the page to reflect the change
+                    })
+                    .catch(error => {
+                        alert('Error deleting complaint: ' + error.message);
+                        setLoading(prev => ({ ...prev, [`delete-${complaintId}`]: false }));
+                    });
+                }
+            };
+
+            const handleSummarize = () => {
+                if (!summaryComplaintId) {
+                    alert('Please enter a Complaint ID.');
+                    return;
+                }
+                setSummaryLoading(true);
+                setSummary('');
+                fetch(`/api/summarize_case/${summaryComplaintId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        setSummary(data.summary);
+                    })
+                    .catch(err => setSummary(`Error: ${err.message}`))
+                    .finally(() => setSummaryLoading(false));
+            };
+
+            // --- Effects ---
+            React.useEffect(() => {
+                AOS.init({ duration: 800, once: true, offset: 50 });
+
+                // --- START: MODIFIED CHART RENDERING ---
+                // Render charts when the modal is shown to ensure correct dimensions
+                const analyticsModal = document.getElementById('analyticsModal');
+                const charts = {}; // To prevent re-rendering
+
+                const renderCharts = () => {
+                    // Status Pie Chart
+                    if (!charts.statusPie) {
+                        fetch('/api/admin/stats/complaints_by_status').then(res => res.json()).then(data => {
+                            const options = {
+                                chart: { type: 'pie', height: 350 },
+                                series: data.series,
+                                labels: data.labels,
+                                title: { text: 'Complaints by Status', align: 'left' }
+                            };
+                            charts.statusPie = new ApexCharts(document.querySelector("#status-pie-chart"), options);
+                            charts.statusPie.render();
+                        });
+                    }
+
+                    // Timeline Line Chart
+                    if (!charts.timeline) {
+                        fetch('/api/admin/stats/complaints_over_time').then(res => res.json()).then(data => {
+                            const options = {
+                                chart: { type: 'line', height: 350 },
+                                series: [{ name: 'Complaints', data: data.series }],
+                                xaxis: { categories: data.labels, type: 'datetime' },
+                                title: { text: 'Complaints Over Time (Last 30 Days)', align: 'left' }
+                            };
+                            charts.timeline = new ApexCharts(document.querySelector("#timeline-line-chart"), options);
+                            charts.timeline.render();
+                        });
+                    }
+                    
+                    // NEW: Issue Type Bar Chart (Now Stacked)
+                    if (!charts.typeBar) {
+                        fetch('/api/admin/stats/complaints_by_type').then(res => res.json()).then(data => {
+                            const options = {
+                                chart: { type: 'bar', height: 350, stacked: true },
+                                series: data.series, // API now provides [{'name': 'Original', 'data': [...]}, {'name': 'Duplicate', 'data': [...]}]
+                                xaxis: { categories: data.labels },
+                                title: { text: 'Total number of complaints registered', align: 'left' },
+                                plotOptions: { bar: { horizontal: true } },
+                                dataLabels: { enabled: false },
+                                legend: { position: 'top' }
+                            };
+                            charts.typeBar = new ApexCharts(document.querySelector("#type-bar-chart"), options);
+                            charts.typeBar.render();
+                        });
+                    }
+
+                    // NEW: City Bar Chart
+                    if (!charts.cityBar) {
+                        fetch('/api/admin/stats/complaints_by_city').then(res => res.json()).then(data => {
+                            const options = {
+                                chart: { type: 'bar', height: 350 },
+                                series: [{ name: 'Count', data: data.series }],
+                                xaxis: { categories: data.labels },
+                                title: { text: 'Top 10 Cities by Complaints', align: 'left' },
+                                dataLabels: { enabled: false }
+                            };
+                            charts.cityBar = new ApexCharts(document.querySelector("#city-bar-chart"), options);
+                            charts.cityBar.render();
+                        });
+                    }
+                };
+                
+                analyticsModal.addEventListener('shown.bs.modal', renderCharts);
+                // --- END: MODIFIED CHART RENDERING ---
+
+                if (isHigherAdmin) {
+                    fetch('/api/admin/stats/feedback_sentiment').then(res => res.json()).then(data => {
+                        const options = {
+                            chart: { type: 'donut', height: 350 },
+                            series: data.series,
+                            labels: data.labels,
+                            title: { text: 'User Feedback Sentiment', align: 'left' }
+                        };
+                        const chart = new ApexCharts(document.querySelector("#feedback-sentiment-chart"), options);
+                        chart.render();
+                    });
+                }
+                
+                fetch('/api/cities')
+                    .then(res => res.json())
+                    .then(data => Array.isArray(data) && setAllCities(data))
+                    .catch(err => console.error("Failed to fetch cities:", err));
+
+                const handleScroll = () => {
+                    if (navbarRef.current) {
+                        navbarRef.current.classList.toggle('shadow-sm', window.scrollY > 10);
+                    }
+                };
+                window.addEventListener('scroll', handleScroll);
+                const handleClickOutside = (event) => {
+                    if (!event.target.closest('.autocomplete-container')) {
+                        setShowCityDropdown(false);
+                    }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => {
+                    window.removeEventListener('scroll', handleScroll);
+                    document.removeEventListener('mousedown', handleClickOutside);
+                    analyticsModal.removeEventListener('shown.bs.modal', renderCharts);
+                };
+            }, []);
+
+            // --- Helper Functions ---
+            const getStatusBadgeClass = (status) => {
+                switch (status) {
+                    case 'Submitted': return 'warning';
+                    case 'Approved': return 'success';
+                    case 'Rejected': return 'danger';
+                    case 'On Hold': return 'info';
+                    case 'Completed': return 'primary';
+                    case 'Resolved & Reviewed': return 'purple'; /* Custom class */
+                    default: return 'secondary';
+                }
+            };
+
+            const handleStatusChange = (complaintId, newStatus) => {
+                setShowCompletionForm(prev => ({ ...prev, [complaintId]: newStatus === 'Completed' }));
+            };
+
+            // --- Event Handlers ---
+            const handleStatusUpdate = (event, complaintId) => {
+                event.preventDefault();
+                const form = event.target;
+                const status = form.status.value;
+                const remarks = form.remarks.value;
+
+                if (!remarks.trim()) {
+                    alert('Please enter remarks for the status update.');
+                    return;
+                }
+
+                setLoading(prev => ({ ...prev, [complaintId]: true }));
+                
+                fetch(`/update_complaint_status/${complaintId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ status, remarks })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Update failed');
+                    window.location.reload();
+                })
+                .catch(error => {
+                    alert('Error updating complaint: ' + error.message);
+                    setLoading(prev => ({ ...prev, [complaintId]: false }));
+                });
+            };
+
+            // --- Stats Calculation ---
+            const stats = complaints.reduce((acc, c) => ({
+                total: acc.total + 1,
+                submitted: acc.submitted + (c.status === 'Submitted' ? 1 : 0),
+                approved: acc.approved + (c.status === 'Approved' ? 1 : 0),
+                rejected: acc.rejected + (c.status === 'Rejected' ? 1 : 0),
+                onHold: acc.onHold + (c.status === 'On Hold' ? 1 : 0)
+            }), { total: 0, submitted: 0, approved: 0, rejected: 0, onHold: 0 });
+
+            // --- Render Logic ---
+            return (
+                <React.Fragment>
+                    {/* Navigation */}
+                    <nav className="navbar navbar-expand-lg navbar-light sticky-top" ref={navbarRef}>
+                        <div className="container">
+                            <a className="navbar-brand" href="/">
+                                <i className="bi bi-person-check me-2" style={{ color: "#6f42c1" }}></i>
+                                eNivaran
+                            </a>
+                            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                                <span className="navbar-toggler-icon"></span>
+                            </button>
+                            <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
+                                <ul className="navbar-nav align-items-center">
+                                    <li className="nav-item">
+                                        <a className="nav-link active" href="/admin">Admin Dashboard</a>
+                                    </li>
+                                    {/* --- START: NEW ANALYTICS BUTTON --- */}
+                                    <li className="nav-item">
+                                        <button className="btn btn-outline-primary ms-2" type="button" data-bs-toggle="modal" data-bs-target="#analyticsModal">
+                                            <i className="bi bi-bar-chart-line me-1"></i> Analytics
+                                        </button>
+                                    </li>
+                                    {/* --- END: NEW ANALYTICS BUTTON --- */}
+                                    <li className="nav-item">
+                                        <a className="nav-link" href="/leaderboard">Leaderboard</a>
+                                    </li>
+                                    {isHigherAdmin && (
+                                        <li className="nav-item">
+                                            <a className="nav-link" href="/unified_detector">Pothole Detectors</a>
+                                        </li>
+                                    )}
+                                    <li className="nav-item">
+                                        <a className="nav-link" href="/logout">Logout</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* Main Content */}
+                    <div className="container py-5">
+                        {/* Statistics Cards */}
+                        <div className="row g-4 mb-5">
+                            <div className="col-md-4">
+                                <div className="card shadow-sm border-0 h-100" data-aos="fade-up">
+                                    <div className="card-body">
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 className="text-muted mb-0">Total Complaints</h6>
+                                            <div className="feature-icon bg-primary text-white rounded-circle p-3">
+                                                <i className="bi bi-list-ul"></i>
+                                            </div>
+                                        </div>
+                                        <h2 className="mb-1">{stats.total}</h2>
+                                        <div className="progress" style={{ height: '4px' }}>
+                                            <div className="progress-bar w-100 bg-primary"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-8">
+                                <div className="card shadow-sm border-0 h-100" data-aos="fade-up" data-aos-delay="100">
+                                    <div className="card-body">
+                                        <h6 className="text-muted mb-3">Status Distribution</h6>
+                                        <div className="row g-3">
+                                            <div className="col-sm-6 col-lg-3">
+                                                <div className="d-flex align-items-center">
+                                                    <div className="badge bg-warning p-2 me-2">
+                                                        <i className="bi bi-hourglass"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div className="small text-muted">Submitted</div>
+                                                        <div className="fw-bold">{stats.submitted}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="col-sm-6 col-lg-3">
+                                                <div className="d-flex align-items-center">
+                                                    <div className="badge bg-success p-2 me-2">
+                                                        <i className="bi bi-check-circle"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div className="small text-muted">Approved</div>
+                                                        <div className="fw-bold">{stats.approved}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="col-sm-6 col-lg-3">
+                                                <div className="d-flex align-items-center">
+                                                    <div className="badge bg-danger p-2 me-2">
+                                                        <i className="bi bi-x-circle"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div className="small text-muted">Rejected</div>
+                                                        <div className="fw-bold">{stats.rejected}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="col-sm-6 col-lg-3">
+                                                <div className="d-flex align-items-center">
+                                                    <div className="badge bg-info p-2 me-2">
+                                                        <i className="bi bi-pause-circle"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div className="small text-muted">On Hold</div>
+                                                        <div className="fw-bold">{stats.onHold}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* --- DELETED: CHARTS ROW --- */}
+
+                        {/* Higher Admin Section */}
+                        {isHigherAdmin && (
+                            <div className="card shadow-sm border-0 mb-4" data-aos="fade-up">
+                                <div className="card-header bg-secondary text-white">
+                                    <h5 className="mb-0"><i className="bi bi-shield-check me-2"></i>Higher Authority Tools</h5>
+                                </div>
+                                <div className="card-body">
+                                    <div className="row g-4">
+                                        <div className="col-lg-5">
+                                            <h6>User Feedback Sentiment</h6>
+                                            <div id="feedback-sentiment-chart"></div>
+                                        </div>
+                                        <div className="col-lg-7">
+                                            <h6>AI Case Summarizer</h6>
+                                            <div className="input-group mb-3">
+                                                <input 
+                                                    type="number" 
+                                                    className="form-control" 
+                                                    placeholder="Enter Complaint ID to Summarize" 
+                                                    value={summaryComplaintId}
+                                                    onChange={e => setSummaryComplaintId(e.target.value)}
+                                                />
+                                                <button className="btn btn-primary" type="button" onClick={handleSummarize} disabled={summaryLoading}>
+                                                    {summaryLoading ? <span className="spinner-border spinner-border-sm"></span> : 'Generate Summary'}
+                                                </button>
+                                            </div>
+                                            {summary && (
+                                                <div className="p-3 bg-light rounded border">
+                                                    <h6 className="text-muted">Summary for Complaint #{summaryComplaintId}</h6>
+                                                    <p style={{ whiteSpace: 'pre-wrap' }}>{summary}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                    {/* Search Form Card */}
+                    <div className="card shadow-sm border-0 mb-4" data-aos="fade-up">
+                        <div className="card-body">
+                            <form method="get" action="/admin">
+                                <div className="row g-2 align-items-end">
+                                    <div className="col-md">
+                                        <label htmlFor="search_id" className="form-label fw-bold">Search by ID</label>
+                                        <input type="number" className="form-control" id="search_id" name="search_id" defaultValue={searchId} placeholder="Enter Complaint ID..." />
+                                    </div>
+                                    <div className="col-md">
+                                        <label htmlFor="city" className="form-label fw-bold">Filter by City</label>
+                                        <div className="autocomplete-container">
+                                            <input type="text" className="form-control" id="city" name="city" value={searchCity} onChange={handleCityInputChange} onKeyDown={handleCityKeyDown} placeholder="Enter City Name..." autoComplete="off" />
+                                            <div className={`autocomplete-items ${showCityDropdown ? 'show' : ''}`}>
+                                                {filteredCities.map((city, index) => (
+                                                    <div key={city} className={index === cityFocus ? 'autocomplete-active' : ''} onClick={() => handleCitySelect(city)}>
+                                                        {city}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-auto">
+                                        <button type="submit" className="btn btn-primary w-100">
+                                            <i className="bi bi-search me-1"></i> Search
+                                        </button>
+                                    </div>
+                                    <div className="col-md-auto">
+                                        <a href="/admin" className="btn btn-outline-secondary w-100">
+                                            <i className="bi bi-x-lg me-1"></i> Clear
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {/* Debug Reset Section */}
+                    {(window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1' || 
+                      window.location.hostname === '') && (
+                        <div className="mb-4" data-aos="fade-up">
+                                <div className="alert alert-warning">
+                                    <h5><i className="bi bi-exclamation-triangle me-2"></i>Debug Mode Actions</h5>
+                                    <p className="mb-3">These actions are only available in development mode.</p>
+                                    <button 
+                                        className="btn btn-danger"
+                                        onClick={() => {
+                                            if (window.confirm('WARNING: This will permanently delete all complaints. Are you sure?')) {
+                                                fetch('/debug/reset_complaints', {
+                                                    method: 'POST'
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    if (data.error) {
+                                                        throw new Error(data.error);
+                                                    }
+                                                    window.location.reload();
+                                                })
+                                                .catch(error => {
+                                                    alert('Error: ' + error.message);
+                                                });
+                                            }
+                                        }}
+                                    >
+                                        <i className="bi bi-trash me-2"></i>
+                                        Reset All Complaints
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Main Complaints Table */}
+                        <div className="card shadow-sm border-0" data-aos="fade-up">
+                            <div className="card-body p-4">
+                                <h2 className="card-title mb-4">
+                                    <i className="bi bi-shield-lock me-2"></i>
+                                    Complaints Management
+                                </h2>
+
+                                {/* Flash Messages */}
+                                {messages.length > 0 && (
+                                    <div className="flash-messages mb-4">
+                                        {messages.map(([category, message], index) => (
+                                            <div key={index} className={`alert alert-${category === 'error' ? 'danger' : category} mb-2`}>
+                                                {message}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Complaints Table */}
+                                {complaints.length > 0 ? (
+                                    <div className="table-responsive">
+                                        <table className="table table-hover align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>User & City</th>
+                                                    <th>Details & Image</th>
+                                                    <th>Coords</th>
+                                                    <th>Type</th>
+                                                    <th>Date</th>
+                                                    <th>Votes</th>
+                                                    <th>Status</th>
+                                                    <th>Remarks</th>
+                                                    <th width="200px">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {complaints.map(complaint => (
+                                                    <React.Fragment key={complaint.id}>
+                                                        <tr data-aos="fade-up">
+                                                            <td>
+                                                                #{complaint.id}
+                                                                {complaint.is_duplicate && (
+                                                                    <div className="small text-danger mt-1" title="This report was flagged as a duplicate.">
+                                                                        <i className="bi bi-back me-1"></i>
+                                                                        Duplicate of #{complaint.original_report_id}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                U{complaint.user_id}
+                                                                {complaint.city && <div className="small text-muted">{complaint.city}</div>}
+                                                            </td>
+                                                            <td>
+                                                                <div className="small">
+                                                                    {complaint.text}
+                                                                    {complaint.image && (
+                                                                        <div className="mt-1">
+                                                                            <img 
+                                                                                src={`data:image/jpeg;base64,${complaint.image}`} 
+                                                                                alt="Complaint" 
+                                                                                className="img-thumbnail" 
+                                                                                style={{maxWidth: "80px", cursor: 'pointer'}} 
+                                                                                data-bs-toggle="modal" 
+                                                                                data-bs-target={`#imageModal-${complaint.id}`}
+                                                                            />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                        </td>
+                                                        <td className="small text-nowrap">
+                                                            {complaint.location_lat.toFixed(4)},<br/>
+                                                            {complaint.location_lon.toFixed(4)}
+                                                        </td>
+                                                        <td>
+                                                            <span className="badge bg-info text-dark small">
+                                                                {complaint.issue_type}
+                                                            </span>
+                                                        </td>
+                                                        <td className="small text-nowrap">
+                                                            {new Date(complaint.submitted_at).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="small">
+                                                            <i className="bi bi-hand-thumbs-up text-primary me-1"></i>
+                                                            {complaint.upvotes}
+                                                        </td>
+                                                        <td>
+                                                            <span className={`badge bg-${getStatusBadgeClass(complaint.status)} small`}>
+                                                                {complaint.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="small">{complaint.remarks}</td>
+                                                        <td>
+                                                            <form
+                                                                action={`/update_complaint_status/${complaint.id}`}
+                                                                method="post"
+                                                                encType="multipart/form-data"
+                                                                className="d-flex flex-column gap-2"
+                                                            >
+                                                                <select
+                                                                    name="status"
+                                                                    className="form-select form-select-sm mb-1"
+                                                                    defaultValue={complaint.status}
+                                                                    onChange={(e) => handleStatusChange(complaint.id, e.target.value)}
+                                                                >
+                                                                    <option>Submitted</option>
+                                                                    <option>Approved</option>
+                                                                    <option>Rejected</option>
+                                                                    <option>On Hold</option>
+                                                                    <option>Completed</option>
+                                                                </select>
+                                                                <textarea
+                                                                    name="remarks"
+                                                                    className="form-control form-control-sm"
+                                                                    placeholder="Enter remarks..."
+                                                                    rows="2"
+                                                                    defaultValue={complaint.remarks !== 'Complaint sent for supervision.' ? complaint.remarks : ''}
+                                                                    required
+                                                                ></textarea>
+                                                                
+                                                                {/* --- NEW: Conditional Completion Form --- */}
+                                                                <div 
+                                                                    className="completion-details-form" 
+                                                                    style={{ display: showCompletionForm[complaint.id] ? 'block' : 'none' }}
+                                                                >
+                                                                    <div className="mb-2">
+                                                                        <label htmlFor={`completion_details_${complaint.id}`} className="form-label small mb-1">Completion Details</label>
+                                                                        <textarea 
+                                                                            id={`completion_details_${complaint.id}`} 
+                                                                            name="completion_details" 
+                                                                            className="form-control form-control-sm" 
+                                                                            rows="3" 
+                                                                            placeholder="Describe the work done..."
+                                                                        ></textarea>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label htmlFor={`completion_image_${complaint.id}`} className="form-label small mb-1">Proof Image (Optional)</label>
+                                                                        <input 
+                                                                            type="file" 
+                                                                            id={`completion_image_${complaint.id}`} 
+                                                                            name="completion_image" 
+                                                                            className="form-control form-control-sm"
+                                                                            accept="image/*"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                <button type="submit" className="btn btn-sm btn-primary w-100 mt-1">
+                                                                    <i className="bi bi-save me-1"></i> Update
+                                                                </button>
+                                                            </form>
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-sm btn-outline-danger w-100 mt-2"
+                                                                onClick={() => handleDelete(complaint.id)}
+                                                                disabled={loading[`delete-${complaint.id}`]}
+                                                            >
+                                                                {loading[`delete-${complaint.id}`] ? (
+                                                                    <span className="spinner-border spinner-border-sm me-1" />
+                                                                ) : (
+                                                                    <i className="bi bi-trash me-1" />
+                                                                )}
+                                                                Delete
+                                                            </button>
+                                                            {/* Chat Button */}
+                                                            <div className="chat-btn-container w-100 mt-2">
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-sm btn-outline-info w-100"
+                                                                    onClick={() => window.openChat(complaint.id)}
+                                                                >
+                                                                    <i className="bi bi-chat-dots me-1"></i> Chat
+                                                                </button>
+                                                                {notifications[complaint.id] > 0 && 
+                                                                    <span className="chat-notification-badge" style={{display: 'block'}}>{notifications[complaint.id]}</span>
+                                                                }
+                                                            </div>
+                                                        </td>
+                                                        </tr>
+                                                        {/* --- NEW: Higher Admin Feedback and Completion Info Row --- */}
+                                                        {isHigherAdmin && (complaint.completion_details || (complaint.feedback && complaint.feedback.length > 0)) && (
+                                                            <tr className="feedback-row">
+                                                                <td colSpan="10">
+                                                                    <div className="feedback-section p-3">
+                                                                        <h6 className="mb-2"><i className="bi bi-info-circle-fill text-primary me-2"></i>Case Review Details</h6>
+                                                                        <div className="row">
+                                                                            {complaint.completion_details && (
+                                                                                <div className="col-md-6">
+                                                                                    <strong>Admin Completion Report:</strong>
+                                                                                    <p className="small mb-1"><em>{complaint.completion_details}</em></p>
+                                                                                    {complaint.completion_image && (
+                                                                                        <a href={`data:image/jpeg;base64,${complaint.completion_image}`} data-bs-toggle="modal" data-bs-target={`#completionImageModal-${complaint.id}`}>
+                                                                                            View Proof Image
+                                                                                        </a>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                            {complaint.feedback && complaint.feedback.length > 0 && (
+                                                                                <div className="col-md-6">
+                                                                                    <strong>User Feedback:</strong>
+                                                                                    {complaint.feedback.map(fb => (
+                                                                                        <div key={fb.id} className="small border-top pt-2 mt-2">
+                                                                                            <p className="mb-1">
+                                                                                                <strong>Rating:</strong> 
+                                                                                                <span className={`fw-bold text-${fb.rating >= 3 ? 'success' : 'danger'}`}>
+                                                                                                    {fb.rating >= 3 ? 'Positive' : 'Negative'}
+                                                                                                </span>
+                                                                                            </p>
+                                                                                            <p className="mb-1"><strong>Comment:</strong> <em>{fb.comment}</em></p>
+                                                                                            {fb.feedback_image_path && (
+                                                                                                <a href={`/uploads/feedback_files/${fb.feedback_image_path}`} target="_blank" rel="noopener noreferrer">
+                                                                                                    View Feedback Image
+                                                                                                </a>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </React.Fragment>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-muted p-5">
+                                        <i className="bi bi-inbox display-1 mb-3 d-block"></i>
+                                        <h4>No complaints found in the system.</h4>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Image Modals - Rendered outside table for better structure */}
+                    {complaints.map(complaint => (
+                        <React.Fragment key={`modal-group-${complaint.id}`}>
+                            {complaint.image && (
+                                <div className="modal fade" id={`imageModal-${complaint.id}`} tabIndex="-1">
+                                    <div className="modal-dialog modal-lg modal-dialog-centered">
+                                        <div className="modal-content">
+                                            <div className="modal-header">
+                                                <h5 className="modal-title">Complaint #{complaint.id}</h5>
+                                                <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div className="modal-body text-center">
+                                                <img 
+                                                    src={`data:image/jpeg;base64,${complaint.image}`}
+                                                    className="img-fluid" 
+                                                    alt="Full size complaint evidence"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {complaint.completion_image && (
+                                    <div className="modal fade" id={`completionImageModal-${complaint.id}`} tabIndex="-1">
+                                    <div className="modal-dialog modal-lg modal-dialog-centered">
+                                        <div className="modal-content">
+                                            <div className="modal-header">
+                                                <h5 className="modal-title">Completion Proof for Complaint #{complaint.id}</h5>
+                                                <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div className="modal-body text-center">
+                                                <img 
+                                                    src={`data:image/jpeg;base64,${complaint.completion_image}`}
+                                                    className="img-fluid" 
+                                                    alt="Full size completion proof"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </React.Fragment>
+                    ))}
+
+                    {/* --- START: NEW ANALYTICS MODAL --- */}
+                    <div className="modal fade" id="analyticsModal" tabIndex="-1" aria-labelledby="analyticsModalLabel" aria-hidden="true">
+                        <div className="modal-dialog modal-xl modal-dialog-centered">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title" id="analyticsModalLabel">
+                                        <i className="bi bi-bar-chart-line me-2"></i>Dashboard Analytics
+                                    </h5>
+                                    <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="row g-4">
+                                        <div className="col-lg-6">
+                                            <div className="card shadow-sm h-100">
+                                                <div className="card-body">
+                                                    <div id="status-pie-chart"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6">
+                                            <div className="card shadow-sm h-100">
+                                                <div className="card-body">
+                                                    <div id="timeline-line-chart"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6">
+                                            <div className="card shadow-sm h-100">
+                                                <div className="card-body">
+                                                    <div id="type-bar-chart"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6">
+                                            <div className="card shadow-sm h-100">
+                                                <div className="card-body">
+                                                    <div id="city-bar-chart"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* --- END: NEW ANALYTICS MODAL --- */}
+
+                    {/* Footer */}
+                    <footer className="py-5 mt-5 bg-dark">
+                        <div className="container">
+                            <div className="row">
+                                <div className="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                                    <div className="footer-brand text-white">
+                                        <i className="bi bi-person-check me-2"></i>
+                                        eNivaran
+                                    </div>
+                                    <p className="footer-text text-white-50">
+                                        AI-powered road safety and civic issue reporting for smarter cities.
+                                    </p>
+                                </div>
+
+                                <div className="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                                    <div className="footer-links">
+                                        <h5 className="text-white">Navigation</h5>
+                                        <ul className="list-unstyled">
+                                            <li><a href="/" className="text-white-50">Home</a></li>
+                                            <li><a href="/complaints" className="text-white-50">Complaints</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div className="col-lg-3 col-md-6 mb-4 mb-lg-0">
+                                    <div className="footer-links">
+                                        <h5 className="text-white">Resources</h5>
+                                        <ul className="list-unstyled">
+                                            <li><a href="#" className="text-white-50">API Documentation</a></li>
+                                            <li><a href="#" className="text-white-50">Data Privacy</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div className="col-lg-3 col-md-6">
+                                    <div className="footer-links">
+                                        <h5 className="text-white">Contact</h5>
+                                        <ul className="list-unstyled">
+                                            <li className="text-white-50"><i className="bi bi-envelope me-2"></i>info@enivaran.com</li>
+                                            <li className="text-white-50"><i className="bi bi-telephone me-2"></i>(555) 123-4567</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="copyright text-center text-white-50 pt-4 mt-4 border-top border-secondary">
+                                <small>
+                                    &copy; {new Date().getFullYear()} eNivaran | Built with React, Bootstrap, Flask & AI
+                                </small>
+                            </div>
+                        </div>
+                    </footer>
+                </React.Fragment>
+            );
+        };
+
+        // Render Admin Dashboard App
+        ReactDOM.render(<AdminDashboardApp />, document.getElementById('app-root'));
+    </script>
+    {% endraw %}
+
+    <!-- Chat Modal -->
+    <div class="modal fade" id="chatModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chat - Complaint #<span id="chatComplaintId"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="input-group mt-3">
+                        <input type="text" class="form-control" id="messageInput" 
+                               placeholder="Type your message..." 
+                               onkeypress="if(event.key === 'Enter') window.sendMessage()">
+                        <button class="btn btn-primary" onclick="window.sendMessage()">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Chat Functionality -->
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxLWJqA7cUy2QNz-Ucfg4c5o1SEBw1QTM",
+            authDomain: "enivaran-1e89f.firebaseapp.com",
+            databaseURL: "https://enivaran-1e89f-default-rtdb.firebaseio.com",
+            projectId: "enivaran-1e89f",
+            storageBucket: "enivaran-1e89f.firebasestorage.app",
+            messagingSenderId: "616471588971",
+            appId: "1:616471588971:web:142d14e0dfb2b74fd1812e",
+            measurementId: "G-78GR7H8XSL"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        let currentChatRef = null;
+        let chatModal;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            chatModal = new bootstrap.Modal(document.getElementById('chatModal'));
+        });
+        
+        window.openChat = function(complaintId) {
+            // Mark chat as read
+            fetch(`/chat/${complaintId}/mark_read`, { method: 'POST' });
+
+            document.getElementById('chatComplaintId').textContent = complaintId;
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            chatMessagesDiv.innerHTML = '<div class="text-center text-muted">Loading messages...</div>';
+            
+            // Unsubscribe from previous chat if any
+            if (currentChatRef) {
+                currentChatRef.off();
+            }
+            
+            // Load existing messages and set up real-time listener
+            fetch(`/chat/${complaintId}/messages`)
+                .then(response => response.json())
+                .then(messages => {
+                    chatMessagesDiv.innerHTML = '';
+                    if (messages && typeof messages === 'object' && Object.keys(messages).length > 0) {
+                        const orderedMessages = Object.values(messages).sort((a, b) => 
+                            new Date(a.timestamp) - new Date(b.timestamp)
+                        );
+                        orderedMessages.forEach(msg => addMessageToUI(msg, false));
+                    } else {
+                        chatMessagesDiv.innerHTML = '<div className="text-center text-muted">No messages yet. Start the conversation!</div>';
+                    }
+                    
+                    // Subscribe to new messages using 'value' listener for robust handling
+                    currentChatRef = firebase.database().ref(`chats/${complaintId}/messages`);
+                    currentChatRef.on('value', snapshot => {
+                        chatMessagesDiv.innerHTML = ''; // Clear previous messages
+                        const messages = snapshot.val();
+                        if (messages) {
+                            Object.values(messages)
+                                  .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                                  .forEach(msg => addMessageToUI(msg, false));
+                        } else {
+                            chatMessagesDiv.innerHTML = '<div className="text-center text-muted">No messages yet. Start the conversation!</div>';
+                        }
+                    });
+                })
+                .catch(err => {
+                    chatMessagesDiv.innerHTML = '<div className="text-center text-danger">Could not load messages.</div>';
+                });
+            
+            chatModal.show();
+        };
+        
+        function addMessageToUI(message, isNew) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${message.sender_id === 'admin' ? 'admin' : 'user'}`;
+            messageDiv.dataset.timestamp = message.timestamp;
+            
+            messageDiv.innerHTML = `
+                <div class="sender">${message.sender_name}</div>
+                <div class="text">${message.text}</div>
+                <div class="timestamp">${new Date(message.timestamp).toLocaleString()}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        window.sendMessage = function() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            const complaintId = document.getElementById('chatComplaintId').textContent;
+            
+            if (text) {
+                // Optimistically add the message to the UI
+                const optimisticMessage = {
+                    text: text,
+                    sender_id: 'admin',
+                    sender_name: 'Admin',
+                    timestamp: new Date().toISOString()
+                };
+                addMessageToUI(optimisticMessage, true);
+
+                // Clear the input immediately
+                input.value = '';
+
+                // Send the message to the server in the background
+                fetch(`/chat/${complaintId}/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        console.error('Failed to send message to server.');
+                        const optimisticElem = document.querySelector(`.chat-message[data-timestamp="${optimisticMessage.timestamp}"]`);
+                        if (optimisticElem) {
+                            optimisticElem.style.opacity = '0.5';
+                            optimisticElem.title = 'Failed to send.';
+                        }
+                    }
+                    return response.json();
+                })
+                .catch(err => {
+                    console.error('Network error sending message:', err);
+                });
+            }
+        };
+    </script>
+</body>
+</html>

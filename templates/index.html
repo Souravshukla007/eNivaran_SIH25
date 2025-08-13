@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pothole Detection & Complaints Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- React and ReactDOM -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+    <!-- AOS Animation Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <!-- Link to your custom CSS (optional) -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="app-root"></div>
+
+    {% raw %}
+    <script type="text/babel">
+        const ISSUE_TYPES = [
+            "Pothole", "Broken Street Light", "Garbage Collection", "Water Leakage",
+            "Blocked Drain", "Traffic Signal Issue", "Road Damage", "Illegal Construction",
+            "Tree Fall", "Street Cleaning", "Public Nuisance", "Stray Animals",
+            "Footpath Damage", "Illegal Parking", "Noise Pollution", "Air Pollution",
+            "Park Maintenance", "Public Toilet Issue", "Bus Stop Damage", "Encroachment"
+        ];
+        // Main App Component
+        const App = () => {
+            const [activeTab, setActiveTab] = React.useState('detection');
+            const navbarRef = React.useRef(null);
+
+            // State for Pothole Image Detection
+            const [potholeLoading, setPotholeLoading] = React.useState(false);
+            const [potholeResult, setPotholeResult] = React.useState(null);
+            const [potholeError, setPotholeError] = React.useState(null);
+            const [annotatedImageSrc, setAnnotatedImageSrc] = React.useState('');
+
+            // State for Video Analysis
+            const [videoLoading, setVideoLoading] = React.useState(false);
+            const [videoResult, setVideoResult] = React.useState(null);
+            const [videoError, setVideoError] = React.useState(null);
+
+            // State for Complaint Form
+            const [complaintLoading, setComplaintLoading] = React.useState(false);
+            const [complaintResult, setComplaintResult] = React.useState(null);
+            const [complaintError, setComplaintError] = React.useState(null);
+
+            // State for autocomplete
+            const [currentFocus, setCurrentFocus] = React.useState(-1);
+            const [showDropdown, setShowDropdown] = React.useState(false);
+            const [filteredIssues, setFilteredIssues] = React.useState([]);
+            const [issueValue, setIssueValue] = React.useState('');
+
+            // --- Effects ---
+            React.useEffect(() => {
+                AOS.init({ duration: 1000, once: true, offset: 100 });
+                const handleScroll = () => {
+                    if (navbarRef.current) {
+                        navbarRef.current.classList.toggle('shadow-sm', window.scrollY > 10);
+                    }
+                };
+                window.addEventListener('scroll', handleScroll);
+                const handleClickOutside = (event) => {
+                    if (!event.target.closest('.autocomplete-container')) {
+                        setShowDropdown(false);
+                    }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => {
+                    window.removeEventListener('scroll', handleScroll);
+                    document.removeEventListener('mousedown', handleClickOutside);
+                };
+            }, []);
+
+            // --- Helper Functions ---
+            const scrollToSection = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    const offset = 100;
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                }
+            };
+
+            // Autocomplete functionality
+            const handleIssueInput = (e) => {
+                const val = e.target.value;
+                setIssueValue(val);
+                setCurrentFocus(-1);
+                if (!val) {
+                    setFilteredIssues([]);
+                    setShowDropdown(false);
+                    return;
+                }
+                const matchingIssues = ISSUE_TYPES.filter(issue => issue.toLowerCase().includes(val.toLowerCase()));
+                setFilteredIssues(matchingIssues);
+                setShowDropdown(matchingIssues.length > 0);
+            };
+
+            const handleIssueSelect = (issue) => {
+                setIssueValue(issue);
+                setShowDropdown(false);
+                setFilteredIssues([]);
+                setCurrentFocus(-1);
+            };
+
+            const handleKeyDown = (e) => {
+                if (!filteredIssues.length) return;
+                if (e.key === 'ArrowDown') {
+                    setCurrentFocus(prev => (prev >= filteredIssues.length - 1 ? 0 : prev + 1));
+                    e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                    setCurrentFocus(prev => (prev <= 0 ? filteredIssues.length - 1 : prev - 1));
+                    e.preventDefault();
+                } else if (e.key === 'Enter' && currentFocus > -1) {
+                    if (filteredIssues[currentFocus]) {
+                        handleIssueSelect(filteredIssues[currentFocus]);
+                        e.preventDefault();
+                    }
+                } else if (e.key === 'Escape') {
+                    setShowDropdown(false);
+                    setCurrentFocus(-1);
+                }
+            };
+
+            // --- Form Handlers ---
+            const handlePotholeSubmit = (event) => {
+                event.preventDefault();
+                setPotholeLoading(true);
+                setPotholeResult(null);
+                setPotholeError(null);
+                setAnnotatedImageSrc('');
+                const formData = new FormData(event.target);
+                fetch('/detect_pothole', { method: 'POST', body: formData })
+                .then(async response => {
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || `Server error: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    setPotholeResult(data.result);
+                    setAnnotatedImageSrc('data:image/jpeg;base64,' + data.annotated_image_b64);
+                })
+                .catch(err => setPotholeError(err.message))
+                .finally(() => setPotholeLoading(false));
+            };
+
+            const handleVideoSubmit = (event) => {
+                event.preventDefault();
+                setVideoLoading(true);
+                setVideoResult(null);
+                setVideoError(null);
+                const formData = new FormData(event.target);
+                fetch('/detect_video', { method: 'POST', body: formData })
+                .then(async response => {
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || `Server error: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        setVideoResult(data);
+                    } else {
+                        throw new Error(data.error || 'Processing failed.');
+                    }
+                })
+                .catch(err => setVideoError(err.message))
+                .finally(() => setVideoLoading(false));
+            };
+
+            const handleComplaintSubmit = (event) => {
+                event.preventDefault();
+                setComplaintLoading(true);
+                setComplaintResult(null);
+                setComplaintError(null);
+                const formData = new FormData(event.target);
+                formData.set('issue_type', issueValue);
+                fetch('/raise_complaint', { method: 'POST', body: formData })
+                .then(async response => {
+                     if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || `Server error: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    setComplaintResult(data.message || 'Complaint submitted successfully.');
+                    event.target.reset();
+                    setIssueValue('');
+                })
+                .catch(err => setComplaintError(err.message))
+                .finally(() => setComplaintLoading(false));
+            };
+
+            return (
+                <React.Fragment>
+                    <nav className="navbar navbar-expand-lg navbar-light sticky-top" ref={navbarRef}>
+                        <div className="container">
+                            <a className="navbar-brand" href="#"><i className="bi bi-cone-striped me-2"></i>eNivaran</a>
+                            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span className="navbar-toggler-icon"></span></button>
+                            <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
+                                <ul className="navbar-nav">
+                                    <li className="nav-item"><a className="nav-link active" href="#" onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>Home</a></li>
+                                    <li className="nav-item"><a className="nav-link" href="#" onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>Features</a></li>
+                                    <li className="nav-item"><a className="nav-link" href="#" onClick={(e) => { e.preventDefault(); scrollToSection('how-it-works'); }}>How It Works</a></li>
+                                    <li className="nav-item"><a className="nav-link" href="/tools"><i className="bi bi-tools me-1"></i>Tools</a></li>
+                                    <li className="nav-item"><a className="nav-link" href="/leaderboard">Leaderboard</a></li>
+                                    <li className="nav-item"><a className="nav-link" href="/my_complaints"><i className="bi bi-list-check"></i>My Complaints</a></li>
+                                    <li className="nav-item"><a className="nav-link text-danger" href="/logout"><i className="bi bi-box-arrow-right me-1"></i>Logout</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                    <section className="hero-section" id="home">
+                        <div className="hero-bg"><div className="hero-bg-circle circle-1"></div><div className="hero-bg-circle circle-2"></div><div className="hero-bg-circle circle-3"></div></div>
+                        <div className="container">
+                            <div className="row align-items-center">
+                                <div className="col-lg-6 hero-content" data-aos="fade-right">
+                                    <h1 className="hero-title text-white display-4 fw-bold">Smart Pothole Detection & Civic Management</h1>
+                                    <p className="hero-text text-white fs-5 my-4">AI-powered road safety and civic issue reporting system that helps create safer, smarter cities through community participation and cutting-edge technology.</p>
+                                    <div><button className="btn hero-cta btn-light btn-lg me-2" onClick={() => scrollToSection('tools-section')}>Get Started <i className="bi bi-arrow-right-short"></i></button><button className="btn hero-cta btn-outline-light btn-lg" onClick={() => scrollToSection('how-it-works')}>Learn More</button></div>
+                                </div>
+                                <div className="col-lg-6 text-center mt-5 mt-lg-0" data-aos="fade-left"><img src="/static/narendra-modi-india-flag-.webp" alt="Pothole Detection Illustration" className="pothole-illustration img-fluid shadow-lg" /></div>
+                            </div>
+                        </div>
+                    </section>
+                    <section className="features-section" id="features">
+                        <div className="container">
+                            <div className="text-center mb-5" data-aos="fade-up">
+                                <h2 className="display-5 fw-bold mb-3">Key Features</h2>
+                                <p className="lead text-muted mx-auto" style={{maxWidth: "700px"}}>Our platform combines AI technology with community engagement to create safer roads and more responsive city services.</p>
+                            </div>
+                            <div className="row">
+                                <div className="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100"><div className="feature-card h-100"><div className="feature-icon"><i className="bi bi-camera"></i></div><h3 className="feature-title h5 fw-bold">AI Pothole Detection</h3><p className="feature-text text-muted">Advanced machine learning algorithms that can detect potholes from images with high accuracy and prioritize them based on severity.</p></div></div>
+                                <div className="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200"><div className="feature-card h-100"><div className="feature-icon"><i className="bi bi-flag"></i></div><h3 className="feature-title h5 fw-bold">Civic Issue Reporting</h3><p className="feature-text text-muted">Easy-to-use platform for citizens to report road conditions and other civic issues directly to municipal authorities.</p></div></div>
+                                <div className="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300"><div className="feature-card h-100"><div className="feature-icon"><i className="bi bi-graph-up"></i></div><h3 className="feature-title h5 fw-bold">Real-time Analytics</h3><p className="feature-text text-muted">Comprehensive dashboard showing critical statistics and trends to help authorities prioritize road maintenance efforts.</p></div></div>
+                            </div>
+                        </div>
+                    </section>
+                    <section className="how-it-works" id="how-it-works">
+                        <div className="container">
+                            <div className="text-center mb-5" data-aos="fade-up"><h2 className="display-5 fw-bold mb-3">How It Works</h2><p className="lead text-muted mx-auto" style={{maxWidth: "700px"}}>Our platform streamlines the process of detecting, reporting, and fixing road issues in just a few simple steps.</p></div>
+                            <div className="row justify-content-center">
+                                <div className="col-lg-8">
+                                    <div className="step-card" data-aos="fade-up" data-aos-delay="100"><div className="step-number">1</div><div className="step-content"><h4 className="h5 fw-bold">Take a Photo</h4><p className="text-muted mb-0">Capture an image of the pothole or road damage using your smartphone or camera.</p></div></div>
+                                    <div className="step-card" data-aos="fade-up" data-aos-delay="200"><div className="step-number">2</div><div className="step-content"><h4 className="h5 fw-bold">Upload for Analysis</h4><p className="text-muted mb-0">Upload the image to our AI system which will detect and classify the severity of the pothole.</p></div></div>
+                                    <div className="step-card" data-aos="fade-up" data-aos-delay="300"><div className="step-number">3</div><div className="step-content"><h4 className="h5 fw-bold">Submit a Complaint</h4><p className="text-muted mb-0">File a formal complaint with location details that will be forwarded to the relevant authorities.</p></div></div>
+                                    <div className="step-card" data-aos="fade-up" data-aos-delay="400"><div className="step-number">4</div><div className="step-content"><h4 className="h5 fw-bold">Track Progress</h4><p className="text-muted mb-0">Monitor the status of your complaint and receive updates when the issue is addressed.</p></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section className="container my-5" id="tools-section">
+                        <div className="text-center mb-5" data-aos="fade-up">
+                            <h2 className="display-5 fw-bold mb-3">Our Tools</h2>
+                            <p className="lead text-muted mx-auto" style={{maxWidth: "700px"}}>Access our pothole detection algorithm and civic complaint system to help improve road conditions in your area.</p>
+                            <div className="content-tabs d-inline-flex mt-4">
+                                <div className={`content-tab ${activeTab === 'detection' ? 'active' : ''}`} onClick={() => setActiveTab('detection')}><i className="bi bi-search me-2"></i>Image Analysis</div>
+                                <div className={`content-tab ${activeTab === 'video' ? 'active' : ''}`} onClick={() => setActiveTab('video')}><i className="bi bi-film me-2"></i>Video Analysis</div>
+                                <div className={`content-tab ${activeTab === 'complaint' ? 'active' : ''}`} onClick={() => setActiveTab('complaint')}><i className="bi bi-flag-fill me-2"></i>Raise Complaint</div>
+                            </div>
+                        </div>
+                        {activeTab === 'detection' && (
+                            <div className="row mb-5 justify-content-center" data-aos="fade-up" key="detection-form">
+                                <div className="col-lg-10 col-xl-8 mx-auto"><div className="card shadow-sm"><div className="card-body p-4 p-md-5"><h3 className="card-title mb-4"><i className="bi bi-camera-fill me-2"></i>Pothole Image Analysis</h3><form id="pothole-form" encType="multipart/form-data" autoComplete="off" onSubmit={handlePotholeSubmit}><div className="mb-3"><label htmlFor="image" className="form-label fw-bold">Upload Road Image</label><input className="form-control form-control-lg" type="file" id="image" name="image" accept="image/*" required /><div className="form-text">Supported formats: JPG, PNG, etc.</div></div><button type="submit" className="btn btn-primary btn-lg w-100" disabled={potholeLoading}>{potholeLoading ? (<><span className="spinner-border spinner-border-sm me-2"></span>Detecting...</>) : (<><i className="bi bi-search me-2"></i>Check for Potholes</>)}</button></form>{potholeResult && !potholeLoading && (<div id="result-section" className="mt-4"><hr/><h5>Detection Result</h5><pre id="result-json" className="bg-light p-3 rounded small">{JSON.stringify(potholeResult, null, 2)}</pre><h6 className="mt-3">Annotated Image</h6><img id="annotated-image" src={annotatedImageSrc} alt="Annotated Result" className="img-fluid border rounded shadow-sm" /></div>)}{potholeError && !potholeLoading && (<div id="error-section" className="alert alert-danger mt-4"><i className="bi bi-exclamation-triangle-fill me-2"></i>{potholeError}</div>)}</div></div></div>
+                            </div>
+                        )}
+                        {activeTab === 'video' && (
+                            <div className="row justify-content-center" data-aos="fade-up" key="video-form">
+                                <div className="col-lg-8">
+                                    <div className="card shadow-sm">
+                                        <div className="card-body p-4 p-md-5">
+                                            <h3 className="card-title mb-4"><i className="bi bi-camera-reels-fill me-2"></i>Road Damage Video Analysis</h3>
+                                            <p className="text-muted mb-4">Upload a video of a road to get a frame-by-frame analysis of damage. Note: Processing may take several minutes.</p>
+                                            <form onSubmit={handleVideoSubmit}>
+                                                <div className="mb-3">
+                                                    <label htmlFor="video" className="form-label fw-bold">Upload Road Video</label>
+                                                    <input className="form-control form-control-lg" type="file" id="video" name="video" accept="video/mp4,video/mov,video/avi" required />
+                                                </div>
+                                                <button type="submit" className="btn btn-info btn-lg w-100" disabled={videoLoading}>
+                                                    {videoLoading ? 'Analyzing Video...' : 'Analyze Video'}
+                                                </button>
+                                            </form>
+                                            {videoLoading && (<div className="mt-4 text-center"><div className="spinner-border text-primary"></div><p className="mt-2">Processing video...</p></div>)}
+                                            {videoResult && (
+                                                <div className="mt-4">
+                                                    <hr/>
+                                                    <h5>Analysis Complete</h5>
+                                                    <h6 className="mt-3">Processed Video</h6>
+                                                    <video src={videoResult.video_url} controls className="img-fluid border rounded shadow-sm" style={{width: '100%'}}></video>
+                                                    <a href={videoResult.video_url} className="btn btn-secondary mt-2" download><i className="bi bi-download me-2"></i>Download</a>
+                                                </div>
+                                            )}
+                                            {videoError && <div className="alert alert-danger mt-4">{videoError}</div>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'complaint' && (
+                            <div className="row mb-5 justify-content-center" data-aos="fade-up" key="complaint-form">
+                                <div className="col-lg-10 col-xl-8 mx-auto"><div className="card shadow-sm"><div className="card-body p-4 p-md-5"><h3 className="card-title mb-4"><i className="bi bi-flag-fill me-2"></i>Raise Civic Complaint</h3><form id="complaint-form" encType="multipart/form-data" autoComplete="off" onSubmit={handleComplaintSubmit}><div className="mb-3"><label htmlFor="issue-type" className="form-label fw-bold">Issue Type</label><div className="autocomplete-container"><input className="form-control" type="text" id="issue-input" name="issue_type" placeholder="Type or select an issue..." onChange={handleIssueInput} onKeyDown={handleKeyDown} value={issueValue} autoComplete="off" required />{showDropdown && (<div className="autocomplete-items show">{filteredIssues.map((issue, index) => (<div key={issue} className={index === currentFocus ? 'autocomplete-active' : ''} onClick={() => handleIssueSelect(issue)}>{issue}</div>))}</div>)}</div></div><div className="mb-3"><label htmlFor="complaint-text" className="form-label fw-bold">Complaint Description</label><textarea className="form-control" id="complaint-text" name="text" rows="3" required placeholder="Describe the issue clearly..."></textarea></div><div className="row g-3 mb-3"><div className="col-md-6"><label htmlFor="street" className="form-label fw-bold">Street Name</label><input className="form-control" type="text" id="street" name="street" required /></div><div className="col-md-6"><label htmlFor="city" className="form-label fw-bold">City Name</label><input className="form-control" type="text" id="city" name="city" required /></div><div className="col-md-6"><label htmlFor="state" className="form-label fw-bold">State</label><input className="form-control" type="text" id="state" name="state" required /></div><div className="col-md-6"><label htmlFor="zipcode" className="form-label fw-bold">Zip Code</label><input className="form-control" type="text" id="zipcode" name="zipcode" required /></div></div><div className="mb-4"><label htmlFor="complaint-image" className="form-label fw-bold">Upload Evidence (Image or Video)</label><input className="form-control" type="file" id="complaint-image" name="image" accept="image/*,video/*" required /><div className="form-text">Upload a clear image or a short video of the issue.</div></div><button type="submit" className="btn btn-success btn-lg w-100" disabled={complaintLoading}>{complaintLoading ? (<><span className="spinner-border spinner-border-sm me-2"></span>Submitting...</>) : (<><i className="bi bi-send-fill me-2"></i>Submit Complaint</>)}</button></form>{complaintResult && !complaintLoading && (<div id="complaint-result-section" className="mt-4"><hr/><div className="alert alert-success d-flex align-items-center"><i className="bi bi-check-circle-fill me-2"></i><div id="complaint-result-message">{complaintResult}</div></div></div>)}{complaintError && !complaintLoading && (<div id="complaint-error-section" className="alert alert-danger mt-4"><i className="bi bi-exclamation-triangle-fill me-2"></i>{complaintError}</div>)}</div></div></div>
+                            </div>
+                        )}
+                    </section>
+                    <section className="container mb-5 py-5 bg-light rounded" data-aos="fade-up">
+                        <div className="text-center mb-5"><h2 className="display-5 fw-bold mb-3">What Users Say</h2><p className="lead text-muted mx-auto" style={{maxWidth: "700px"}}>Hear from citizens and municipal workers who use our platform to improve their communities.</p></div>
+                        <div className="row">
+                            <div className="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100"><div className="card h-100 shadow-sm border-0"><div className="card-body d-flex flex-column"><div className="mb-3"><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i></div><p className="card-text text-muted fst-italic">"As a city maintenance worker, this platform has revolutionized how we prioritize road repairs. The AI detection is surprisingly accurate!"</p><div className="d-flex align-items-center mt-auto pt-3"><div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style={{width: "50px", height: "50px", fontSize: "1.5rem"}}><i className="bi bi-person-fill"></i></div><div><h6 className="mb-0 fw-bold">Robert Chen</h6><small className="text-muted">City Maintenance Dept.</small></div></div></div></div></div>
+                            <div className="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200"><div className="card h-100 shadow-sm border-0"><div className="card-body d-flex flex-column"><div className="mb-3"><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i></div><p className="card-text text-muted fst-italic">"I reported a pothole near my home and it was fixed within a week! The process was simple and straightforward. Great civic tool!"</p><div className="d-flex align-items-center mt-auto pt-3"><div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" style={{width: "50px", height: "50px", fontSize: "1.5rem"}}><i className="bi bi-person-fill"></i></div><div><h6 className="mb-0 fw-bold">Sarah Johnson</h6><small className="text-muted">Community Member</small></div></div></div></div></div>
+                            <div className="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300"><div className="card h-100 shadow-sm border-0"><div className="card-body d-flex flex-column"><div className="mb-3"><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-fill text-warning"></i><i className="bi bi-star-half text-warning"></i></div><p className="card-text text-muted fst-italic">"As a transportation planner, the data analytics this platform provides helps us make informed decisions about infrastructure improvements."</p><div className="d-flex align-items-center mt-auto pt-3"><div className="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3" style={{width: "50px", height: "50px", fontSize: "1.5rem"}}><i className="bi bi-person-fill"></i></div><div><h6 className="mb-0 fw-bold">Michael Torres</h6><small className="text-muted">City Planner</small></div></div></div></div></div>
+                        </div>
+                    </section>
+                    <footer>
+                        <div className="container">
+                            <div className="row">
+                                <div className="col-lg-4 col-md-6 mb-4 mb-lg-0"><div className="footer-brand d-flex align-items-center mb-3"><i className="bi bi-cone-striped me-2"></i>eNivaran</div><p className="footer-text">AI-powered road safety and civic issue reporting for smarter cities. Building better communities through technology and citizen participation.</p><div className="social-links mt-4"><a href="#" className="social-link me-3"><i className="bi bi-facebook"></i></a><a href="#" className="social-link me-3"><i className="bi bi-twitter"></i></a><a href="#" className="social-link me-3"><i className="bi bi-instagram"></i></a><a href="#" className="social-link"><i className="bi bi-linkedin"></i></a></div></div>
+                                <div className="col-lg-2 col-md-6 mb-4 mb-lg-0"><div className="footer-links"><h5>Navigation</h5><ul><li><a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>Home</a></li><li><a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>Features</a></li><li><a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('how-it-works'); }}>How It Works</a></li><li><a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('tools-section'); }}>Tools</a></li></ul></div></div>
+                                <div className="col-lg-3 col-md-6 mb-4 mb-lg-0"><div className="footer-links"><h5>Resources</h5><ul><li><a href="#">API Documentation</a></li><li><a href="#">Developer Resources</a></li><li><a href="#">Data Privacy</a></li><li><a href="#">Terms of Service</a></li></ul></div></div>
+                                <div className="col-lg-3 col-md-6 mb-4 mb-lg-0"><div className="footer-links"><h5>Contact</h5><ul className="list-unstyled"><li className="mb-2"><a href="mailto:info@enivaran.com"><i className="bi bi-envelope me-2"></i>info@enivaran.com</a></li><li className="mb-2"><a href="tel:+15551234567"><i className="bi bi-telephone me-2"></i>(555) 123-4567</a></li><li><a href="#"><i className="bi bi-geo-alt me-2"></i>123 Tech Lane, Smart City</a></li></ul></div></div>
+                            </div>
+                            <div className="copyright mt-5"><small><i className="bi bi-c-circle me-1"></i>{new Date().getFullYear()} eNivaran | Built with React, Bootstrap, Flask & AI</small></div>
+                        </div>
+                    </footer>
+                </React.Fragment>
+            );
+        }
+        ReactDOM.render(<App />, document.getElementById('app-root'));
+    </script>
+    {% endraw %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <div class="chatbot-fab" id="chatbot-fab"><i class="bi bi-robot"></i></div>
+    <div class="chatbot-popup" id="chatbot-popup">
+        <div class="chatbot-header"><span>eNivaran J.A.R.V.I.S</span><div class="actions"><button id="chatbot-new-chat" title="New Chat"><i class="bi bi-plus-square"></i></button><button id="chatbot-close" title="Close"><i class="bi bi-x-lg"></i></button></div></div>
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chatbot-input">
+            <input type="file" id="chatbot-file-input" style="display: none;" accept="image/*,application/pdf">
+            <button class="upload-btn" id="chatbot-upload-btn" title="Upload File"><i class="bi bi-paperclip"></i></button>
+            <input type="text" id="chatbot-input-field" placeholder="Ask a question..." autocomplete="off">
+            <button class="send-btn" id="chatbot-send-btn"><i class="bi bi-send"></i></button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fab = document.getElementById('chatbot-fab');
+            const popup = document.getElementById('chatbot-popup');
+            const closeBtn = document.getElementById('chatbot-close');
+            const newChatBtn = document.getElementById('chatbot-new-chat');
+            const messagesContainer = document.getElementById('chatbot-messages');
+            const inputField = document.getElementById('chatbot-input-field');
+            const sendBtn = document.getElementById('chatbot-send-btn');
+            const uploadBtn = document.getElementById('chatbot-upload-btn');
+            const fileInput = document.getElementById('chatbot-file-input');
+            const storageKey = 'chatbot_history_user_guest';
+            let conversation = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+            fab.addEventListener('click', () => popup.classList.toggle('open'));
+            closeBtn.addEventListener('click', () => popup.classList.remove('open'));
+
+            const addMessage = (text, sender, type = 'text') => {
+                const messageDiv = document.createElement('div');
+                if (type === 'typing') {
+                    messageDiv.className = 'chat-message-ai typing';
+                    messageDiv.textContent = 'AI is typing...';
+                    messageDiv.id = 'typing-indicator';
+                } else if (type === 'file') {
+                    messageDiv.className = 'chat-message-user';
+                    messageDiv.innerHTML = `<div class="chat-message-file-preview"><i class="bi bi-file-earmark-check"></i> <span>${text}</span></div>`;
+                } else {
+                    messageDiv.className = `chat-message-${sender}`;
+                    if (sender === 'ai') {
+                        messageDiv.innerHTML = formatResponseAsHTML(text);
+                    } else {
+                        messageDiv.textContent = text;
+                    }
+                }
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                return messageDiv;
+            };
+
+            const saveConversation = () => localStorage.setItem(storageKey, JSON.stringify(conversation));
+            const loadConversation = () => {
+                messagesContainer.innerHTML = '';
+                conversation.forEach(msg => addMessage(msg.text, msg.sender, msg.type));
+            };
+
+            const formatResponseAsHTML = (text) => {
+                let html = '';
+                const lines = text.split('\n');
+                let inList = false;
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    if (trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ')) {
+                        if (!inList) { html += '<ul>'; inList = true; }
+                        html += `<li>${trimmedLine.substring(2)}</li>`;
+                    } else {
+                        if (inList) { html += '</ul>'; inList = false; }
+                        if (trimmedLine) { html += `<p>${trimmedLine}</p>`; }
+                    }
+                }
+                if (inList) { html += '</ul>'; }
+                return html;
+            };
+
+            const handleSendMessage = async () => {
+                const text = inputField.value.trim();
+                if (!text) return;
+                addMessage(text, 'user');
+                conversation.push({ sender: 'user', text: text, type: 'text' });
+                saveConversation();
+                inputField.value = '';
+                addMessage('', 'ai', 'typing');
+                try {
+                    const response = await fetch('/chat/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ history: conversation.slice(0, -1), message: text })
+                    });
+                    document.getElementById('typing-indicator')?.remove();
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || 'Failed to get AI response.');
+                    }
+                    const data = await response.json();
+                    addMessage(data.response, 'ai');
+                    conversation.push({ sender: 'ai', text: data.response, type: 'text' });
+                    saveConversation();
+                } catch (error) {
+                    addMessage(`Error: ${error.message}`, 'ai');
+                }
+            };
+
+            const handleFileUpload = async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                const fileMsg = addMessage(`Uploading ${file.name}...`, 'user', 'file');
+                try {
+                    const response = await fetch('/upload_chat_file', { method: 'POST', body: formData });
+                    if (!response.ok) throw new Error('Upload failed.');
+                    const data = await response.json();
+                    fileMsg.querySelector('span').textContent = data.message;
+                    const userMsgText = `I have uploaded a file named: ${data.filename}. Please acknowledge it.`;
+                    conversation.push({ sender: 'user', text: userMsgText, type: 'text' });
+                    saveConversation();
+                    addMessage('', 'ai', 'typing');
+                    const aiResponse = await fetch('/chat/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ history: conversation.slice(0, -1), message: userMsgText })
+                    });
+                    document.getElementById('typing-indicator')?.remove();
+                    if (!aiResponse.ok) throw new Error('AI response failed after upload.');
+                    const aiData = await aiResponse.json();
+                    addMessage(aiData.response, 'ai');
+                    conversation.push({ sender: 'ai', text: aiData.response, type: 'text' });
+                    saveConversation();
+                } catch (error) {
+                    fileMsg.querySelector('span').textContent = `Error: ${error.message}`;
+                    fileMsg.style.backgroundColor = '#f8d7da';
+                    fileMsg.style.color = '#721c24';
+                }
+            };
+
+            sendBtn.addEventListener('click', handleSendMessage);
+            inputField.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                    e.target.value = '';
+                }
+            });
+            newChatBtn.addEventListener('click', () => {
+                if (confirm('Are you sure? This will clear the chat history.')) {
+                    conversation = [];
+                    saveConversation();
+                    loadConversation();
+                    const greeting = "Hello! I'm the eNivaran J.A.R.V.I.S. How can I help you today?";
+                    addMessage(greeting, 'ai');
+                    conversation.push({ sender: 'ai', text: greeting, type: 'text' });
+                    saveConversation();
+                }
+            });
+
+            loadConversation();
+            if (conversation.length === 0) {
+                const greeting = "Hello! I'm the eNivaran J.A.R.V.I.S. How can I help you today?";
+                addMessage(greeting, 'ai');
+                conversation.push({ sender: 'ai', text: greeting, type: 'text' });
+                saveConversation();
+            }
+        });
+    </script>
+</body>
+</html>

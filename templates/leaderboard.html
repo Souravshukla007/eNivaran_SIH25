@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard - eNivaran</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed-top mt-5 mx-auto" style="max-width: 800px; z-index: 1050;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <style>
+        .highlight-top-user { background-color: #d1e7dd; } /* Light green for top users */
+        .highlight-current-user { background-color: #cff4fc; font-weight: bold; } /* Light blue for current user */
+    </style>
+</head>
+<body>
+    <div id="app-root"></div>
+    {% raw %}
+    <script type="text/babel">
+        const LeaderboardApp = () => {
+            const [data, setData] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+
+            React.useEffect(() => {
+                fetch('/api/leaderboard')
+                    .then(async res => {
+                        if (!res.ok) {
+                            const errorData = await res.json();
+                            throw new Error(errorData.error || 'Failed to load leaderboard data.');
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (!data || !data.leaderboard || !data.currentUser) {
+                            throw new Error('Invalid data received from server.');
+                        }
+                        setData(data);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        setError(err.message || 'An unexpected error occurred.');
+                        setLoading(false);
+                        if (err.message.includes('session')) {
+                            window.location.href = '/login';  // Redirect to login if session is invalid
+                        }
+                    });
+            }, []);
+
+            const isUserInTopList = data && data.leaderboard.some(u => u.id === data.currentUser.id);
+
+            return (
+                <React.Fragment>
+                    {/* Navbar (Copy from another page like complaints.html if needed) */}
+                    <nav className="navbar navbar-expand-lg navbar-light sticky-top bg-light shadow-sm">
+                        <div className="container-fluid">
+                            <a className="navbar-brand" href="/">
+                                <img src="/static/modiji.png" alt="eNivaran Logo" style={{height: "50px"}} />
+                                eNivaran
+                            </a>
+                            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                                <span className="navbar-toggler-icon"></span>
+                            </button>
+                            <div className="collapse navbar-collapse" id="navbarNav">
+                                <ul className="navbar-nav ms-auto">
+                                   <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
+                                   <li className="nav-item"><a className="nav-link" href="/complaints">Complaints</a></li>
+                                   <li className="nav-item"><a className="nav-link" href="/my_complaints">My Complaints</a></li>
+                                   <li className="nav-item"><a className="nav-link" href="/tools">Tools</a></li>
+                                   <li className="nav-item"><a className="nav-link" href="/leaderboard">Leaderboard</a></li>
+                                   <li className="nav-item"><a className="nav-link" href="/logout">Logout</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <div className="container py-5">
+                        <h1 className="display-5 fw-bold text-center mb-4"><i className="bi bi-trophy-fill text-warning me-2"></i>User Leaderboard</h1>
+                        
+                        {loading && <div className="text-center"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>}
+                        {error && <div className="alert alert-danger">{error}</div>}
+                        
+                        {data && (
+                            <div>
+                                {/* Current User's Standing Card */}
+                                <div className="card shadow-sm mb-5 border-primary border-2">
+                                    <div className="card-header bg-primary text-white">
+                                        <h5 className="mb-0"><i className="bi bi-person-circle me-2"></i>Your Standing</h5>
+                                    </div>
+                                    <div className="card-body">
+                                        <div className="row text-center">
+                                            <div className="col"><strong>Rank:</strong> #{data.currentUser.rank}</div>
+                                            <div className="col"><strong>Name:</strong> {data.currentUser.full_name}</div>
+                                            <div className="col"><strong>Complaints:</strong> {data.currentUser.total_complaints}</div>
+                                            <div className="col"><strong>Votes:</strong> {data.currentUser.total_votes}</div>
+                                            <div className="col"><strong>Points:</strong> {parseInt(data.currentUser.points)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Leaderboard Table */}
+                                <div className="card shadow-sm">
+                                    <div className="card-body">
+                                        <h4 className="card-title">Top Performers</h4>
+                                        {data.leaderboard.length > 0 ? (
+                                            <div className="table-responsive">
+                                                <table className="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Rank</th>
+                                                            <th>Name</th>
+                                                            <th>Complaints</th>
+                                                            <th>Votes</th>
+                                                            <th>Points</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {data.leaderboard.map(user => {
+                                                            const isCurrentUser = user.id === data.currentUser.id;
+                                                            const rowClass = isCurrentUser ? 'highlight-current-user' : 'highlight-top-user';
+                                                            return (
+                                                                <tr key={user.id} className={rowClass}>
+                                                                    <td>#{user.rank}</td>
+                                                                    <td>{user.full_name}</td>
+                                                                    <td>{user.total_complaints}</td>
+                                                                    <td>{user.total_votes}</td>
+                                                                    <td>{parseInt(user.points)}</td>
+                                                                </tr>
+                                                            );
+                                                        })}
+
+                                                        {!isUserInTopList && (
+                                                            <tr className="highlight-current-user">
+                                                                <td>#{data.currentUser.rank}</td>
+                                                                <td>{data.currentUser.full_name} (You)</td>
+                                                                <td>{data.currentUser.total_complaints}</td>
+                                                                <td>{data.currentUser.total_votes}</td>
+                                                                <td>{parseInt(data.currentUser.points)}</td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center text-muted p-5">
+                                                <i className="bi bi-bar-chart-line display-1 mb-3 d-block"></i>
+                                                <h4>The leaderboard is empty.</h4>
+                                                <p>Register complaints and get upvotes to earn points and climb the ranks!</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </React.Fragment>
+            );
+        };
+
+        ReactDOM.render(<LeaderboardApp />, document.getElementById('app-root'));
+    </script>
+    {% endraw %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

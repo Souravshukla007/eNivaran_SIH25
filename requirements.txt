@@ -1,0 +1,42 @@
+# Core web framework and utils
+Flask>=2.2.3
+firebase-admin>=6.0.0
+Werkzeug>=2.3.0
+python-dotenv>=0.19.0
+SQLAlchemy>=2.0.0
+python-dateutil>=2.8.2
+google-generativeai>=0.4.0
+
+# Image processing
+opencv-python>=4.7.0
+numpy>=1.26.4
+Pillow>=9.4.0
+
+# Data visualization
+matplotlib>=3.7.1
+
+# Machine Learning
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0  # For YOLO v8 implementation
+
+# ONNX runtime and conversion
+onnxruntime==1.18.0  # Latest stable version for improved performance
+onnx>=1.14.0  # Core ONNX package compatible with Python 3.11
+
+# Scientific computing and utilities
+scikit-image>=0.20.0
+scikit-learn>=1.2.2
+scipy>=1.10.1
+pandas>=2.0.0
+
+# Additional ML/NLP dependencies for duplication detection
+sentence-transformers==2.6.1
+geopy==2.4.1
+xgboost==2.0.3
+
+# Frontend Dependencies (referenced in package.json)
+# Note: These are typically managed through npm/yarn, listed here for documentation
+# bootstrap>=5.3.0
+# react>=18.2.0
+# babel>=7.21.2

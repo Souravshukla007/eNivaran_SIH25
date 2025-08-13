@@ -1,0 +1,824 @@
+2025-06-23 14:49:20,854 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-23 14:49:20,854 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-23 14:49:20,855 - INFO -  * Restarting with stat
+2025-06-23 14:49:26,348 - WARNING -  * Debugger is active!
+2025-06-23 14:49:26,351 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 14:49:26,552 - INFO - 127.0.0.1 - - [23/Jun/2025 14:49:26] "GET / HTTP/1.1" 200 -
+2025-06-23 14:49:26,611 - INFO - 127.0.0.1 - - [23/Jun/2025 14:49:26] "GET /static/style.css HTTP/1.1" 200 -
+2025-06-23 14:49:27,394 - INFO - 127.0.0.1 - - [23/Jun/2025 14:49:27] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-23 14:49:33,912 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 14:49:33,919 - INFO - Model loaded successfully
+2025-06-23 14:49:33,920 - INFO - Processing image: C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\uploads\3-pothole.png
+2025-06-23 14:49:34,373 - ERROR - Error assessing road priority: 5
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 254, in assess_road_priority
+    results = model.predict(image, conf=conf_threshold)[0]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\model.py", line 555, in predict
+    return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\predictor.py", line 227, in __call__
+    return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\torch\utils\_contextlib.py", line 36, in generator_context
+    response = gen.send(None)
+               ^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\predictor.py", line 351, in stream_inference
+    s[i] += self.write_results(i, Path(paths[i]), im, s)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\predictor.py", line 435, in write_results
+    string += f"{result.verbose()}{result.speed['inference']:.1f}ms"
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\results.py", line 695, in verbose
+    return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\results.py", line 695, in <genexpr>
+    return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+                          ~~~~~~~~~~^^^
+KeyError: 5
+2025-06-23 14:49:34,375 - INFO - 127.0.0.1 - - [23/Jun/2025 14:49:34] "[35m[1mPOST /detect_pothole HTTP/1.1[0m" 500 -
+2025-06-23 14:53:54,696 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 14:53:55,347 - INFO -  * Restarting with stat
+2025-06-23 14:54:01,149 - WARNING -  * Debugger is active!
+2025-06-23 14:54:01,152 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 14:54:24,280 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 14:54:24,342 - ERROR - Failed to load model: property 'names' of 'YOLO' object has no setter
+2025-06-23 14:54:24,343 - ERROR - Error processing image: property 'names' of 'YOLO' object has no setter
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 644, in process_road_image_example
+    model = load_model(model_path)
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 36, in load_model
+    model.names = {0: 'pothole'}  # Set class names explicitly
+    ^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\torch\nn\modules\module.py", line 2041, in __setattr__
+    super().__setattr__(name, value)
+AttributeError: property 'names' of 'YOLO' object has no setter
+2025-06-23 14:54:43,386 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 14:54:44,010 - INFO -  * Restarting with stat
+2025-06-23 14:54:49,802 - WARNING -  * Debugger is active!
+2025-06-23 14:54:49,806 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 14:54:59,439 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 14:55:00,109 - INFO -  * Restarting with stat
+2025-06-23 14:55:05,845 - WARNING -  * Debugger is active!
+2025-06-23 14:55:05,849 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 14:55:14,035 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 14:55:14,102 - INFO - Model loaded successfully
+2025-06-23 14:55:14,102 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 14:55:15,747 - INFO - Inference completed in 1.64 seconds
+2025-06-23 14:55:15,753 - INFO - Detected 0 potholes
+2025-06-23 14:55:15,755 - INFO - Road priority assessment completed: Low
+2025-06-23 14:55:15,761 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:06:22,838 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:06:23,713 - INFO -  * Restarting with stat
+2025-06-23 15:06:30,498 - WARNING -  * Debugger is active!
+2025-06-23 15:06:30,502 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:06:33,475 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:06:34,277 - INFO -  * Restarting with stat
+2025-06-23 15:06:40,141 - WARNING -  * Debugger is active!
+2025-06-23 15:06:40,144 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:07:00,554 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:07:01,383 - INFO -  * Restarting with stat
+2025-06-23 15:07:07,428 - WARNING -  * Debugger is active!
+2025-06-23 15:07:07,430 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:07:18,287 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:07:18,356 - INFO - Model loaded successfully
+2025-06-23 15:07:18,357 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:07:20,093 - ERROR - Error assessing road priority: 5
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 255, in assess_road_priority
+    results = model.predict(image, conf=conf_threshold, save=False, imgsz=640)[0]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\model.py", line 555, in predict
+    return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\predictor.py", line 227, in __call__
+    return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\torch\utils\_contextlib.py", line 36, in generator_context
+    response = gen.send(None)
+               ^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\predictor.py", line 351, in stream_inference
+    s[i] += self.write_results(i, Path(paths[i]), im, s)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\predictor.py", line 435, in write_results
+    string += f"{result.verbose()}{result.speed['inference']:.1f}ms"
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\results.py", line 695, in verbose
+    return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\ultralytics\engine\results.py", line 695, in <genexpr>
+    return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+                          ~~~~~~~~~~^^^
+KeyError: 5
+2025-06-23 15:07:20,096 - ERROR - Failed to process the image
+2025-06-23 15:07:41,296 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:07:42,012 - INFO -  * Restarting with stat
+2025-06-23 15:07:47,917 - WARNING -  * Debugger is active!
+2025-06-23 15:07:47,919 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:08:03,045 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:08:03,847 - INFO -  * Restarting with stat
+2025-06-23 15:08:09,820 - WARNING -  * Debugger is active!
+2025-06-23 15:08:09,823 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:08:27,739 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:08:28,563 - INFO -  * Restarting with stat
+2025-06-23 15:08:34,690 - WARNING -  * Debugger is active!
+2025-06-23 15:08:34,693 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:08:58,051 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:08:58,897 - INFO -  * Restarting with stat
+2025-06-23 15:09:04,997 - WARNING -  * Debugger is active!
+2025-06-23 15:09:04,999 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:09:22,712 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:09:23,541 - INFO -  * Restarting with stat
+2025-06-23 15:09:29,507 - WARNING -  * Debugger is active!
+2025-06-23 15:09:29,510 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:09:45,061 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:09:45,193 - INFO - Model loaded successfully
+2025-06-23 15:09:45,194 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:09:45,266 - INFO - Inference completed in 0.06 seconds
+2025-06-23 15:09:45,266 - ERROR - Error assessing road priority: object of type 'Boxes' has no len()
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 321, in assess_road_priority
+    for i in range(len(boxes)):
+                   ^^^^^^^^^^
+TypeError: object of type 'Boxes' has no len()
+2025-06-23 15:09:45,267 - ERROR - Failed to process the image
+2025-06-23 15:10:12,052 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:10:12,901 - INFO -  * Restarting with stat
+2025-06-23 15:10:19,027 - WARNING -  * Debugger is active!
+2025-06-23 15:10:19,030 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:10:34,500 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:10:34,619 - INFO - Model loaded successfully
+2025-06-23 15:10:34,620 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:10:34,687 - ERROR - Error assessing road priority: too many indices for array: array is 2-dimensional, but 4 were indexed
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 316, in assess_road_priority
+    results = model.predict(image, conf=conf_threshold, save=False, imgsz=640)[0]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 90, in predict
+    boxes = boxes[valid_idx]
+            ~~~~~^^^^^^^^^^^
+IndexError: too many indices for array: array is 2-dimensional, but 4 were indexed
+2025-06-23 15:10:34,689 - ERROR - Failed to process the image
+2025-06-23 15:11:01,479 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:11:02,306 - INFO -  * Restarting with stat
+2025-06-23 15:11:08,808 - WARNING -  * Debugger is active!
+2025-06-23 15:11:08,810 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:11:25,259 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:11:26,067 - INFO -  * Restarting with stat
+2025-06-23 15:11:32,212 - WARNING -  * Debugger is active!
+2025-06-23 15:11:32,215 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:11:45,243 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:11:45,380 - INFO - Model loaded successfully
+2025-06-23 15:11:45,381 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:11:45,453 - ERROR - Error assessing road priority: too many indices for array: array is 2-dimensional, but 3 were indexed
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 325, in assess_road_priority
+    results = model.predict(image, conf=conf_threshold, save=False, imgsz=640)[0]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 93, in predict
+    filtered_boxes = boxes[valid_idx]
+                     ~~~~~^^^^^^^^^^^
+IndexError: too many indices for array: array is 2-dimensional, but 3 were indexed
+2025-06-23 15:11:45,455 - ERROR - Failed to process the image
+2025-06-23 15:12:12,240 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:12:13,055 - INFO -  * Restarting with stat
+2025-06-23 15:12:19,196 - WARNING -  * Debugger is active!
+2025-06-23 15:12:19,198 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:12:34,612 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:12:34,769 - INFO - Model loaded successfully
+2025-06-23 15:12:34,769 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:12:34,955 - ERROR - Error assessing road priority: too many indices for array: array is 2-dimensional, but 3 were indexed
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 322, in assess_road_priority
+    results = model.predict(image, conf=conf_threshold, save=False, imgsz=640)[0]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 90, in predict
+    filtered_boxes = boxes[valid_idx]
+                     ~~~~~^^^^^^^^^^^
+IndexError: too many indices for array: array is 2-dimensional, but 3 were indexed
+2025-06-23 15:12:34,956 - ERROR - Failed to process the image
+2025-06-23 15:13:00,689 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\pothole_detection.py', reloading
+2025-06-23 15:13:01,411 - INFO -  * Restarting with stat
+2025-06-23 15:13:07,193 - WARNING -  * Debugger is active!
+2025-06-23 15:13:07,196 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:14:26,939 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:14:27,058 - INFO - Model loaded successfully
+2025-06-23 15:14:27,058 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:14:27,114 - INFO - Processing model outputs
+2025-06-23 15:14:27,118 - ERROR - Error processing model outputs: too many indices for array: array is 2-dimensional, but 3 were indexed
+2025-06-23 15:14:27,119 - INFO - Output shapes - boxes: (37, 8400), scores: (32, 160, 160)
+2025-06-23 15:14:27,120 - INFO - Inference completed in 0.05 seconds
+2025-06-23 15:14:27,120 - INFO - Detected 0 potholes
+2025-06-23 15:14:27,120 - INFO - Road priority assessment completed: Low
+2025-06-23 15:14:27,123 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:16:46,246 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:16:46,386 - INFO - Model loaded successfully
+2025-06-23 15:16:46,386 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:16:46,441 - INFO - Processing model outputs
+2025-06-23 15:16:46,442 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:16:46,442 - INFO - Detection output shape: (1, 37, 8400)
+2025-06-23 15:16:46,443 - INFO - Inference completed in 0.05 seconds
+2025-06-23 15:16:46,444 - ERROR - Error assessing road priority: 'numpy.ndarray' object has no attribute 'cpu'
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 357, in assess_road_priority
+    box = boxes.xyxy[i].cpu().numpy()
+          ^^^^^^^^^^^^^^^^^
+AttributeError: 'numpy.ndarray' object has no attribute 'cpu'
+2025-06-23 15:16:46,444 - ERROR - Failed to process the image
+2025-06-23 15:18:35,879 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:18:36,001 - INFO - Model loaded successfully
+2025-06-23 15:18:36,001 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:18:36,054 - INFO - Processing model outputs
+2025-06-23 15:18:36,054 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:18:36,054 - INFO - Detection output shape: (1, 37, 8400)
+2025-06-23 15:18:36,055 - INFO - Inference completed in 0.05 seconds
+2025-06-23 15:18:38,836 - INFO - Detected 8365 potholes
+2025-06-23 15:18:39,116 - INFO - Road priority assessment completed: High
+2025-06-23 15:18:39,119 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:19:27,481 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:19:27,609 - INFO - Model loaded successfully
+2025-06-23 15:19:27,609 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:19:27,660 - INFO - Processing model outputs
+2025-06-23 15:19:27,661 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:19:27,661 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:19:27,662 - INFO - Inference completed in 0.05 seconds
+2025-06-23 15:19:27,666 - INFO - Detected 0 potholes
+2025-06-23 15:19:27,666 - INFO - Road priority assessment completed: Low
+2025-06-23 15:19:27,669 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:20:48,084 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:20:48,211 - INFO - Model loaded successfully
+2025-06-23 15:20:48,211 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:20:48,267 - INFO - Processing model outputs
+2025-06-23 15:20:48,267 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:20:48,268 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:20:48,272 - ERROR - Error processing model outputs: boolean index did not match indexed array along dimension 1; dimension is 4 but corresponding boolean dimension is 33
+2025-06-23 15:20:48,272 - INFO - Output shapes - boxes: (8400, 4), scores: (8400, 33)
+2025-06-23 15:20:48,273 - INFO - Inference completed in 0.06 seconds
+2025-06-23 15:20:48,273 - INFO - Detected 0 potholes
+2025-06-23 15:20:48,273 - INFO - Road priority assessment completed: Low
+2025-06-23 15:20:48,276 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:22:10,225 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:22:10,350 - INFO - Model loaded successfully
+2025-06-23 15:22:10,350 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:22:10,401 - INFO - Processing model outputs
+2025-06-23 15:22:10,402 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:22:10,402 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:22:10,403 - INFO - Inference completed in 0.05 seconds
+2025-06-23 15:22:10,759 - INFO - Detected 0 potholes
+2025-06-23 15:22:10,760 - INFO - Road priority assessment completed: Low
+2025-06-23 15:22:10,762 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:34:20,441 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:34:20,585 - INFO - Model loaded successfully
+2025-06-23 15:34:20,586 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:34:20,596 - ERROR - Error assessing road priority: [ONNXRuntimeError] : 2 : INVALID_ARGUMENT : Unexpected input data type. Actual: (tensor(uint8)) , expected: (tensor(float))
+Traceback (most recent call last):
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 362, in assess_road_priority
+    results = model.predict(image, conf=conf_threshold, save=False, imgsz=640)[0]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\pothole_detection.py", line 57, in predict
+    outputs = self.session.run(None, {'images': img})
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\venv\Lib\site-packages\onnxruntime\capi\onnxruntime_inference_collection.py", line 217, in run
+    return self._sess.run(output_names, input_feed, run_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+onnxruntime.capi.onnxruntime_pybind11_state.InvalidArgument: [ONNXRuntimeError] : 2 : INVALID_ARGUMENT : Unexpected input data type. Actual: (tensor(uint8)) , expected: (tensor(float))
+2025-06-23 15:34:20,598 - ERROR - Failed to process the image
+2025-06-23 15:35:17,711 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:35:17,820 - INFO - Model loaded successfully
+2025-06-23 15:35:17,820 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:35:17,873 - INFO - Processing model outputs
+2025-06-23 15:35:17,873 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:35:17,873 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:35:17,873 - INFO - Found 47 detections above confidence threshold 0.25
+2025-06-23 15:35:17,874 - INFO - Inference completed in 0.05 seconds
+2025-06-23 15:35:17,877 - INFO - Detected 0 potholes
+2025-06-23 15:35:17,877 - INFO - Road priority assessment completed: Low
+2025-06-23 15:35:17,879 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:36:11,922 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:36:12,049 - INFO - Model loaded successfully
+2025-06-23 15:36:12,049 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:36:12,098 - INFO - Processing model outputs
+2025-06-23 15:36:12,098 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:36:12,098 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:36:12,099 - INFO - Found 47 detections above confidence threshold 0.25
+2025-06-23 15:36:12,099 - INFO - Inference completed in 0.04 seconds
+2025-06-23 15:36:12,102 - INFO - Detected 0 potholes
+2025-06-23 15:36:12,103 - INFO - Road priority assessment completed: Low
+2025-06-23 15:36:12,105 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:37:05,124 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:37:05,243 - INFO - Model loaded successfully
+2025-06-23 15:37:05,244 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:37:05,290 - INFO - Processing model outputs
+2025-06-23 15:37:05,291 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:37:05,291 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:37:05,291 - INFO - Found 8400 detections above confidence threshold 0.25
+2025-06-23 15:37:05,293 - INFO - Inference completed in 0.04 seconds
+2025-06-23 15:37:05,702 - INFO - Detected 44 potholes
+2025-06-23 15:37:05,705 - INFO - Road priority assessment completed: High
+2025-06-23 15:37:05,707 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:45:40,603 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-23 15:45:40,603 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-23 15:45:40,606 - INFO -  * Restarting with stat
+2025-06-23 15:45:46,203 - WARNING -  * Debugger is active!
+2025-06-23 15:45:46,206 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 15:45:46,395 - INFO - 127.0.0.1 - - [23/Jun/2025 15:45:46] "GET / HTTP/1.1" 200 -
+2025-06-23 15:45:46,447 - INFO - 127.0.0.1 - - [23/Jun/2025 15:45:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-23 15:45:47,027 - INFO - 127.0.0.1 - - [23/Jun/2025 15:45:47] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-23 15:45:54,483 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:45:54,649 - INFO - Model loaded successfully
+2025-06-23 15:45:54,650 - INFO - Processing image: C:\Users\devgu\OneDrive\Desktop\eNivaran_hackathon_project-main\uploads\1-pothole.png
+2025-06-23 15:45:54,716 - INFO - Processing model outputs
+2025-06-23 15:45:54,717 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:45:54,717 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:45:54,717 - INFO - Found 8400 detections above confidence threshold 0.25
+2025-06-23 15:45:54,719 - INFO - Inference completed in 0.05 seconds
+2025-06-23 15:45:55,089 - INFO - Detected 60 potholes
+2025-06-23 15:45:55,092 - INFO - Road priority assessment completed: High
+2025-06-23 15:45:55,109 - INFO - 127.0.0.1 - - [23/Jun/2025 15:45:55] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-23 15:45:55,117 - INFO - 127.0.0.1 - - [23/Jun/2025 15:45:55] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-23 15:51:18,612 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:51:18,732 - INFO - Model loaded successfully
+2025-06-23 15:51:18,732 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:51:18,782 - INFO - Processing model outputs
+2025-06-23 15:51:18,782 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:51:18,782 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:51:18,783 - INFO - Found 47 detections above confidence threshold 0.25
+2025-06-23 15:51:18,783 - INFO - Inference completed in 0.04 seconds
+2025-06-23 15:51:18,785 - INFO - Detected 0 potholes
+2025-06-23 15:51:18,786 - INFO - Road priority assessment completed: Low
+2025-06-23 15:51:18,788 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 15:52:38,081 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 15:52:38,192 - INFO - Model loaded successfully
+2025-06-23 15:52:38,193 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 15:52:38,243 - INFO - Processing model outputs
+2025-06-23 15:52:38,243 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 15:52:38,244 - INFO - Detection output shape: (37, 8400)
+2025-06-23 15:52:38,244 - INFO - Found 47 detections above confidence threshold 0.25
+2025-06-23 15:52:38,245 - INFO - Inference completed in 0.05 seconds
+2025-06-23 15:52:38,247 - INFO - Detected 0 potholes
+2025-06-23 15:52:38,248 - INFO - Road priority assessment completed: Low
+2025-06-23 15:52:38,251 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 16:15:11,797 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 16:15:11,908 - INFO - Model loaded successfully
+2025-06-23 16:15:11,908 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 16:15:11,953 - INFO - Processing model outputs
+2025-06-23 16:15:11,954 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 16:15:11,954 - INFO - Detection output shape: (37, 8400)
+2025-06-23 16:15:11,954 - INFO - Found 47 detections above confidence threshold 0.25
+2025-06-23 16:15:11,955 - INFO - Inference completed in 0.04 seconds
+2025-06-23 16:15:11,957 - INFO - Detected 0 potholes
+2025-06-23 16:15:11,959 - INFO - Road priority assessment completed: Low
+2025-06-23 16:15:11,961 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 16:16:03,067 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 16:16:03,178 - INFO - Model loaded successfully
+2025-06-23 16:16:03,179 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 16:16:03,223 - INFO - Processing model outputs
+2025-06-23 16:16:03,223 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 16:16:03,223 - INFO - Detection output shape: (37, 8400)
+2025-06-23 16:16:03,224 - INFO - Box coordinates shape: (4, 8400)
+2025-06-23 16:16:03,224 - INFO - Scores shape: (33, 8400)
+2025-06-23 16:16:03,225 - INFO - Valid boxes shape: (4, 8400)
+2025-06-23 16:16:03,225 - INFO - Valid scores shape: (8400,)
+2025-06-23 16:16:03,225 - INFO - Found 8400 detections above confidence threshold 0.25
+2025-06-23 16:16:03,226 - INFO - Inference completed in 0.04 seconds
+2025-06-23 16:16:03,611 - INFO - Detected 44 potholes
+2025-06-23 16:16:03,614 - INFO - Road priority assessment completed: High
+2025-06-23 16:16:03,616 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 16:16:57,662 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 16:16:57,772 - INFO - Model loaded successfully
+2025-06-23 16:16:57,773 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 16:16:57,819 - INFO - Processing model outputs
+2025-06-23 16:16:57,820 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 16:16:57,820 - INFO - Detection output shape: (37, 8400)
+2025-06-23 16:16:57,820 - INFO - Box coordinates shape: (4, 8400)
+2025-06-23 16:16:57,820 - INFO - Scores shape: (33, 8400)
+2025-06-23 16:16:57,823 - INFO - Valid boxes shape: (4, 5)
+2025-06-23 16:16:57,823 - INFO - Valid scores shape: (5,)
+2025-06-23 16:16:57,824 - INFO - Found 5 detections above confidence threshold 0.25
+2025-06-23 16:16:57,825 - INFO - Inference completed in 0.05 seconds
+2025-06-23 16:16:57,825 - INFO - Detected 0 potholes
+2025-06-23 16:16:57,826 - INFO - Road priority assessment completed: Low
+2025-06-23 16:16:57,828 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 16:17:44,416 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 16:17:44,540 - INFO - Model loaded successfully
+2025-06-23 16:17:44,541 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 16:17:44,609 - INFO - Processing model outputs
+2025-06-23 16:17:44,609 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 16:17:44,609 - INFO - Detection output shape: (37, 8400)
+2025-06-23 16:17:44,610 - INFO - Box coordinates shape: (4, 8400)
+2025-06-23 16:17:44,610 - INFO - Scores shape: (33, 8400)
+2025-06-23 16:17:44,610 - INFO - Valid boxes shape: (4, 5)
+2025-06-23 16:17:44,610 - INFO - Valid scores shape: (5,)
+2025-06-23 16:17:44,610 - INFO - Found 5 detections above confidence threshold 0.25
+2025-06-23 16:17:44,611 - INFO - Inference completed in 0.07 seconds
+2025-06-23 16:17:44,612 - INFO - Detected 0 potholes
+2025-06-23 16:17:44,612 - INFO - Road priority assessment completed: Low
+2025-06-23 16:17:44,614 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 16:59:13,108 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 16:59:13,227 - INFO - Model loaded successfully
+2025-06-23 16:59:13,227 - INFO - Processing image: uploads/3-pothole.png
+2025-06-23 16:59:13,282 - INFO - Processing model outputs
+2025-06-23 16:59:13,282 - INFO - Raw output shapes - output0: (1, 37, 8400), output1: (1, 32, 160, 160)
+2025-06-23 16:59:13,282 - INFO - Detection output shape: (37, 8400)
+2025-06-23 16:59:13,283 - INFO - Box coordinates shape: (4, 8400)
+2025-06-23 16:59:13,283 - INFO - Scores shape: (33, 8400)
+2025-06-23 16:59:13,286 - INFO - Sample 5277 - coords: [     625.33      519.86      26.808      34.118], score: 1.004338264465332e-05
+2025-06-23 16:59:13,286 - INFO - Sample 5764 - coords: [     34.631      578.25      54.683       50.76], score: 6.556510925292969e-07
+2025-06-23 16:59:13,287 - INFO - Sample 5845 - coords: [     42.324      583.88      52.034      48.079], score: 8.344650268554688e-07
+2025-06-23 16:59:13,287 - INFO - Sample 2208 - coords: [     384.47      221.72      55.424      44.666], score: 3.8743019104003906e-07
+2025-06-23 16:59:13,287 - INFO - Sample 2069 - coords: [     563.13       200.3       47.22      28.768], score: 6.407499313354492e-06
+2025-06-23 16:59:13,287 - INFO - Max score: 0.7960359454154968 at index 6937
+2025-06-23 16:59:13,287 - INFO - Valid boxes shape: (4, 5)
+2025-06-23 16:59:13,287 - INFO - Valid scores shape: (5,)
+2025-06-23 16:59:13,287 - INFO - Found 5 detections above confidence threshold 0.25
+2025-06-23 16:59:13,288 - INFO - Inference completed in 0.06 seconds
+2025-06-23 16:59:13,289 - INFO - Detected 0 potholes
+2025-06-23 16:59:13,289 - INFO - Road priority assessment completed: Low
+2025-06-23 16:59:13,290 - INFO - Saved analyzed image to uploads/3-pothole_analyzed.jpg
+2025-06-23 17:34:40,268 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 17:34:40,412 - INFO - ONNX model loaded successfully.
+2025-06-23 17:55:00,148 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-23 17:55:00,149 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-23 17:55:00,150 - INFO -  * Restarting with stat
+2025-06-23 17:55:05,140 - WARNING -  * Debugger is active!
+2025-06-23 17:55:05,142 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 17:55:05,311 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:05] "[32mGET / HTTP/1.1[0m" 302 -
+2025-06-23 17:55:05,360 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:05] "GET /login HTTP/1.1" 200 -
+2025-06-23 17:55:05,406 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-23 17:55:05,468 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:05] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-23 17:55:08,732 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:08] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-06-23 17:55:08,736 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:08] "GET /login HTTP/1.1" 200 -
+2025-06-23 17:55:08,758 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-23 17:55:10,106 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:10] "GET /signup HTTP/1.1" 200 -
+2025-06-23 17:55:10,131 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-23 17:55:15,687 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:15] "[32mPOST /signup HTTP/1.1[0m" 302 -
+2025-06-23 17:55:15,690 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:15] "GET /login HTTP/1.1" 200 -
+2025-06-23 17:55:15,719 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:15] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-23 17:55:18,322 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:18] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-06-23 17:55:18,330 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:18] "GET / HTTP/1.1" 200 -
+2025-06-23 17:55:18,368 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-23 17:55:18,696 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:18] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-23 17:55:27,256 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-23 17:55:27,418 - INFO - ONNX model loaded successfully.
+2025-06-23 17:55:27,501 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:27] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-23 17:55:27,509 - INFO - 127.0.0.1 - - [23/Jun/2025 17:55:27] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-23 18:06:08,531 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-23 18:06:08,531 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-23 18:06:08,533 - INFO -  * Restarting with stat
+2025-06-23 18:06:14,446 - WARNING -  * Debugger is active!
+2025-06-23 18:06:14,449 - INFO -  * Debugger PIN: 213-494-395
+2025-06-23 18:06:14,632 - INFO - 127.0.0.1 - - [23/Jun/2025 18:06:14] "GET / HTTP/1.1" 200 -
+2025-06-23 18:06:14,698 - INFO - 127.0.0.1 - - [23/Jun/2025 18:06:14] "GET /static/style.css HTTP/1.1" 200 -
+2025-06-23 18:06:15,096 - INFO - 127.0.0.1 - - [23/Jun/2025 18:06:15] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-23 18:11:21,513 - INFO - 127.0.0.1 - - [23/Jun/2025 18:11:21] "GET / HTTP/1.1" 200 -
+2025-06-23 18:11:21,536 - INFO - 127.0.0.1 - - [23/Jun/2025 18:11:21] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-23 18:11:21,834 - INFO - 127.0.0.1 - - [23/Jun/2025 18:11:21] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 08:54:22,891 - INFO - 127.0.0.1 - - [24/Jun/2025 08:54:22] "GET / HTTP/1.1" 200 -
+2025-06-24 08:54:22,923 - INFO - 127.0.0.1 - - [24/Jun/2025 08:54:22] "GET /static/style.css HTTP/1.1" 200 -
+2025-06-24 08:54:23,251 - INFO - 127.0.0.1 - - [24/Jun/2025 08:54:23] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 08:55:30,534 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 08:55:30,534 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 08:55:30,536 - INFO -  * Restarting with stat
+2025-06-24 08:55:36,604 - WARNING -  * Debugger is active!
+2025-06-24 08:55:36,606 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 08:58:48,898 - INFO - 127.0.0.1 - - [24/Jun/2025 08:58:48] "GET / HTTP/1.1" 200 -
+2025-06-24 08:58:48,977 - INFO - 127.0.0.1 - - [24/Jun/2025 08:58:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 08:58:49,505 - INFO - 127.0.0.1 - - [24/Jun/2025 08:58:49] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 08:58:58,883 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-24 08:58:59,138 - INFO - ONNX model loaded successfully.
+2025-06-24 08:58:59,263 - INFO - 127.0.0.1 - - [24/Jun/2025 08:58:59] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-24 08:58:59,271 - INFO - 127.0.0.1 - - [24/Jun/2025 08:58:59] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 09:10:11,334 - INFO - 127.0.0.1 - - [24/Jun/2025 09:10:11] "GET / HTTP/1.1" 200 -
+2025-06-24 09:10:11,357 - INFO - 127.0.0.1 - - [24/Jun/2025 09:10:11] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:10:11,826 - INFO - 127.0.0.1 - - [24/Jun/2025 09:10:11] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 09:16:20,554 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 09:16:20,554 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 09:16:20,555 - INFO -  * Restarting with stat
+2025-06-24 09:16:25,606 - WARNING -  * Debugger is active!
+2025-06-24 09:16:25,608 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 09:16:25,766 - INFO - 127.0.0.1 - - [24/Jun/2025 09:16:25] "GET / HTTP/1.1" 200 -
+2025-06-24 09:16:25,812 - INFO - 127.0.0.1 - - [24/Jun/2025 09:16:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:16:26,426 - INFO - 127.0.0.1 - - [24/Jun/2025 09:16:26] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 09:24:18,958 - INFO - 127.0.0.1 - - [24/Jun/2025 09:24:18] "GET / HTTP/1.1" 200 -
+2025-06-24 09:24:18,981 - INFO - 127.0.0.1 - - [24/Jun/2025 09:24:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:24:19,448 - INFO - 127.0.0.1 - - [24/Jun/2025 09:24:19] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 09:30:24,384 - INFO - 127.0.0.1 - - [24/Jun/2025 09:30:24] "GET / HTTP/1.1" 200 -
+2025-06-24 09:30:24,404 - INFO - 127.0.0.1 - - [24/Jun/2025 09:30:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:30:24,875 - INFO - 127.0.0.1 - - [24/Jun/2025 09:30:24] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 09:30:40,267 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 09:30:40,267 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 09:30:40,268 - INFO -  * Restarting with stat
+2025-06-24 09:30:46,045 - WARNING -  * Debugger is active!
+2025-06-24 09:30:46,047 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 09:30:46,201 - INFO - 127.0.0.1 - - [24/Jun/2025 09:30:46] "GET / HTTP/1.1" 200 -
+2025-06-24 09:30:46,249 - INFO - 127.0.0.1 - - [24/Jun/2025 09:30:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:30:46,712 - INFO - 127.0.0.1 - - [24/Jun/2025 09:30:46] "GET /pothole_stats HTTP/1.1" 200 -
+2025-06-24 09:46:05,173 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 09:46:05,174 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 09:46:05,175 - INFO -  * Restarting with stat
+2025-06-24 09:46:10,550 - WARNING -  * Debugger is active!
+2025-06-24 09:46:10,553 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 09:46:13,417 - INFO - 127.0.0.1 - - [24/Jun/2025 09:46:13] "GET / HTTP/1.1" 200 -
+2025-06-24 09:46:13,488 - INFO - 127.0.0.1 - - [24/Jun/2025 09:46:13] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:46:13,899 - INFO - 127.0.0.1 - - [24/Jun/2025 09:46:13] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:47:22,778 - INFO - 127.0.0.1 - - [24/Jun/2025 09:47:22] "GET / HTTP/1.1" 200 -
+2025-06-24 09:47:22,805 - INFO - 127.0.0.1 - - [24/Jun/2025 09:47:22] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:47:23,075 - INFO - 127.0.0.1 - - [24/Jun/2025 09:47:23] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:47:24,000 - INFO - 127.0.0.1 - - [24/Jun/2025 09:47:24] "GET / HTTP/1.1" 200 -
+2025-06-24 09:47:24,020 - INFO - 127.0.0.1 - - [24/Jun/2025 09:47:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:47:24,271 - INFO - 127.0.0.1 - - [24/Jun/2025 09:47:24] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:51:36,182 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 09:51:36,184 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 09:51:36,184 - INFO -  * Restarting with stat
+2025-06-24 09:51:40,802 - WARNING -  * Debugger is active!
+2025-06-24 09:51:40,804 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 09:51:41,009 - INFO - 127.0.0.1 - - [24/Jun/2025 09:51:41] "GET / HTTP/1.1" 200 -
+2025-06-24 09:51:41,059 - INFO - 127.0.0.1 - - [24/Jun/2025 09:51:41] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:51:41,526 - INFO - 127.0.0.1 - - [24/Jun/2025 09:51:41] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:51:51,390 - INFO - 127.0.0.1 - - [24/Jun/2025 09:51:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:51:51,398 - INFO - 127.0.0.1 - - [24/Jun/2025 09:51:51] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-06-24 09:52:19,944 - INFO - 127.0.0.1 - - [24/Jun/2025 09:52:19] "GET / HTTP/1.1" 200 -
+2025-06-24 09:52:19,965 - INFO - 127.0.0.1 - - [24/Jun/2025 09:52:19] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-06-24 09:52:19,968 - INFO - 127.0.0.1 - - [24/Jun/2025 09:52:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:52:20,384 - INFO - 127.0.0.1 - - [24/Jun/2025 09:52:20] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:52:25,056 - INFO - 127.0.0.1 - - [24/Jun/2025 09:52:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:52:25,072 - INFO - 127.0.0.1 - - [24/Jun/2025 09:52:25] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-06-24 09:53:27,496 - INFO - 127.0.0.1 - - [24/Jun/2025 09:53:27] "GET / HTTP/1.1" 200 -
+2025-06-24 09:53:27,521 - INFO - 127.0.0.1 - - [24/Jun/2025 09:53:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:53:27,822 - INFO - 127.0.0.1 - - [24/Jun/2025 09:53:27] "[33mGET /templates/71fGCjrARfL_1_-removebg-preview.png HTTP/1.1[0m" 404 -
+2025-06-24 09:53:27,833 - INFO - 127.0.0.1 - - [24/Jun/2025 09:53:27] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:56:22,524 - INFO - 127.0.0.1 - - [24/Jun/2025 09:56:22] "GET / HTTP/1.1" 200 -
+2025-06-24 09:56:22,551 - INFO - 127.0.0.1 - - [24/Jun/2025 09:56:22] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:56:22,802 - INFO - 127.0.0.1 - - [24/Jun/2025 09:56:22] "[33mGET /71fGCjrARfL_1_-removebg-preview.png HTTP/1.1[0m" 404 -
+2025-06-24 09:56:22,812 - INFO - 127.0.0.1 - - [24/Jun/2025 09:56:22] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:57:04,817 - INFO - 127.0.0.1 - - [24/Jun/2025 09:57:04] "GET / HTTP/1.1" 200 -
+2025-06-24 09:57:04,846 - INFO - 127.0.0.1 - - [24/Jun/2025 09:57:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:57:05,093 - INFO - 127.0.0.1 - - [24/Jun/2025 09:57:05] "[33mGET /templates/71fGCjrARfL_1_-removebg-preview.png HTTP/1.1[0m" 404 -
+2025-06-24 09:57:05,103 - INFO - 127.0.0.1 - - [24/Jun/2025 09:57:05] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:58:08,376 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:08] "GET / HTTP/1.1" 200 -
+2025-06-24 09:58:08,405 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:58:08,648 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:08] "[33mGET /templates/modiji.png HTTP/1.1[0m" 404 -
+2025-06-24 09:58:08,659 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:08] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:58:20,389 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:20] "GET / HTTP/1.1" 200 -
+2025-06-24 09:58:20,409 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:20] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:58:20,650 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:20] "[33mGET /modiji.png HTTP/1.1[0m" 404 -
+2025-06-24 09:58:20,661 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:20] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:58:40,591 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:40] "GET / HTTP/1.1" 200 -
+2025-06-24 09:58:40,613 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:40] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:58:40,867 - INFO - 127.0.0.1 - - [24/Jun/2025 09:58:40] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:59:39,868 - INFO - 127.0.0.1 - - [24/Jun/2025 09:59:39] "GET / HTTP/1.1" 200 -
+2025-06-24 09:59:39,894 - INFO - 127.0.0.1 - - [24/Jun/2025 09:59:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:59:40,145 - INFO - 127.0.0.1 - - [24/Jun/2025 09:59:40] "[33mGET /templates/modiji.png HTTP/1.1[0m" 404 -
+2025-06-24 09:59:40,158 - INFO - 127.0.0.1 - - [24/Jun/2025 09:59:40] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 09:59:51,289 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 09:59:51,289 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 09:59:51,290 - INFO -  * Restarting with stat
+2025-06-24 09:59:56,518 - WARNING -  * Debugger is active!
+2025-06-24 09:59:56,520 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 09:59:56,685 - INFO - 127.0.0.1 - - [24/Jun/2025 09:59:56] "GET / HTTP/1.1" 200 -
+2025-06-24 09:59:56,732 - INFO - 127.0.0.1 - - [24/Jun/2025 09:59:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 09:59:57,002 - INFO - 127.0.0.1 - - [24/Jun/2025 09:59:57] "[33mGET /templates/modiji.png HTTP/1.1[0m" 404 -
+2025-06-24 09:59:57,053 - INFO - 127.0.0.1 - - [24/Jun/2025 09:59:57] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:00:00,141 - INFO - 127.0.0.1 - - [24/Jun/2025 10:00:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:00:00,145 - INFO - 127.0.0.1 - - [24/Jun/2025 10:00:00] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-06-24 10:01:16,979 - INFO - 127.0.0.1 - - [24/Jun/2025 10:01:16] "GET / HTTP/1.1" 200 -
+2025-06-24 10:01:17,010 - INFO - 127.0.0.1 - - [24/Jun/2025 10:01:17] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-06-24 10:01:17,014 - INFO - 127.0.0.1 - - [24/Jun/2025 10:01:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:01:17,397 - INFO - 127.0.0.1 - - [24/Jun/2025 10:01:17] "GET /static/modiji.png HTTP/1.1" 200 -
+2025-06-24 10:01:17,407 - INFO - 127.0.0.1 - - [24/Jun/2025 10:01:17] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:03:52,036 - INFO - 127.0.0.1 - - [24/Jun/2025 10:03:52] "GET / HTTP/1.1" 200 -
+2025-06-24 10:03:52,057 - INFO - 127.0.0.1 - - [24/Jun/2025 10:03:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:03:52,358 - INFO - 127.0.0.1 - - [24/Jun/2025 10:03:52] "GET /static/narendra-modi-india-flag-.webp HTTP/1.1" 200 -
+2025-06-24 10:03:52,369 - INFO - 127.0.0.1 - - [24/Jun/2025 10:03:52] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:04:14,531 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-24 10:04:14,733 - INFO - ONNX model loaded successfully.
+2025-06-24 10:04:14,858 - INFO - 127.0.0.1 - - [24/Jun/2025 10:04:14] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-24 10:04:14,867 - INFO - 127.0.0.1 - - [24/Jun/2025 10:04:14] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:26:23,230 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 10:26:23,231 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 10:26:23,232 - INFO -  * Restarting with stat
+2025-06-24 10:26:28,457 - WARNING -  * Debugger is active!
+2025-06-24 10:26:28,460 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 10:26:28,626 - INFO - 127.0.0.1 - - [24/Jun/2025 10:26:28] "GET / HTTP/1.1" 200 -
+2025-06-24 10:26:28,629 - INFO - 127.0.0.1 - - [24/Jun/2025 10:26:28] "GET / HTTP/1.1" 200 -
+2025-06-24 10:26:28,692 - INFO - 127.0.0.1 - - [24/Jun/2025 10:26:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:26:29,079 - INFO - 127.0.0.1 - - [24/Jun/2025 10:26:29] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:26:29,148 - INFO - 127.0.0.1 - - [24/Jun/2025 10:26:29] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:30:16,543 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:16] "GET / HTTP/1.1" 200 -
+2025-06-24 10:30:16,569 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:30:17,021 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:17] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:30:17,034 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:17] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:30:19,170 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:19] "GET /my_complaints HTTP/1.1" 200 -
+2025-06-24 10:30:19,202 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:30:23,246 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:23] "GET /tools HTTP/1.1" 200 -
+2025-06-24 10:30:23,274 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:30:26,878 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:26] "GET / HTTP/1.1" 200 -
+2025-06-24 10:30:26,909 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:26] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:30:27,134 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:27] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:30:27,148 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:27] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:30:32,602 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:32] "GET /my_complaints HTTP/1.1" 200 -
+2025-06-24 10:30:32,635 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:32] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:30:33,525 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:33] "GET /tools HTTP/1.1" 200 -
+2025-06-24 10:30:33,557 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:30:44,279 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:44] "GET /tools HTTP/1.1" 200 -
+2025-06-24 10:30:44,302 - INFO - 127.0.0.1 - - [24/Jun/2025 10:30:44] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:49:42,669 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 10:49:42,669 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 10:49:42,671 - INFO -  * Restarting with stat
+2025-06-24 10:49:47,471 - WARNING -  * Debugger is active!
+2025-06-24 10:49:47,474 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 10:49:47,641 - INFO - 127.0.0.1 - - [24/Jun/2025 10:49:47] "GET / HTTP/1.1" 200 -
+2025-06-24 10:49:47,697 - INFO - 127.0.0.1 - - [24/Jun/2025 10:49:47] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:49:48,135 - INFO - 127.0.0.1 - - [24/Jun/2025 10:49:48] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:49:48,226 - INFO - 127.0.0.1 - - [24/Jun/2025 10:49:48] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:50:00,867 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-24 10:50:01,044 - INFO - ONNX model loaded successfully.
+2025-06-24 10:50:01,144 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:01] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-24 10:50:01,152 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:01] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:50:12,075 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-24 10:50:12,205 - INFO - ONNX model loaded successfully.
+2025-06-24 10:50:12,296 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:12] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-24 10:50:12,326 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:12] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:50:39,045 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:39] "POST /raise_complaint HTTP/1.1" 200 -
+2025-06-24 10:50:41,076 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:41] "[35m[1mGET /my_complaints HTTP/1.1[0m" 500 -
+2025-06-24 10:50:41,111 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:41] "GET /my_complaints?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-06-24 10:50:41,113 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:41] "GET /my_complaints?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-06-24 10:50:41,152 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:41] "GET /my_complaints?__debugger__=yes&cmd=resource&f=console.png&s=hTeTk2At4NuZW8QTq80a HTTP/1.1" 200 -
+2025-06-24 10:50:41,171 - INFO - 127.0.0.1 - - [24/Jun/2025 10:50:41] "GET /my_complaints?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-06-24 10:52:52,117 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\flask_app.py', reloading
+2025-06-24 10:52:52,710 - INFO -  * Restarting with stat
+2025-06-24 10:52:59,281 - WARNING -  * Debugger is active!
+2025-06-24 10:52:59,283 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 10:53:37,804 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\flask_app.py', reloading
+2025-06-24 10:53:38,382 - INFO -  * Restarting with stat
+2025-06-24 10:53:44,872 - WARNING -  * Debugger is active!
+2025-06-24 10:53:44,875 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 10:54:09,748 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:09] "GET /my_complaints HTTP/1.1" 200 -
+2025-06-24 10:54:09,796 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:54:14,117 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:14] "[35m[1mGET /complaints HTTP/1.1[0m" 500 -
+2025-06-24 10:54:14,138 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:14] "GET /complaints?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-06-24 10:54:14,139 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:14] "GET /complaints?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-06-24 10:54:14,162 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:14] "GET /complaints?__debugger__=yes&cmd=resource&f=console.png&s=cwDNaxJZZwhKw52RWCQi HTTP/1.1" 200 -
+2025-06-24 10:54:14,177 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:14] "GET /complaints?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-06-24 10:54:17,909 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:17] "GET / HTTP/1.1" 200 -
+2025-06-24 10:54:17,932 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:54:18,185 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:18] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:54:18,196 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:18] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:54:27,344 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-24 10:54:27,518 - INFO - ONNX model loaded successfully.
+2025-06-24 10:54:27,611 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:27] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-24 10:54:27,618 - INFO - 127.0.0.1 - - [24/Jun/2025 10:54:27] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:55:14,705 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:14] "POST /raise_complaint HTTP/1.1" 200 -
+2025-06-24 10:55:18,078 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:18] "GET /my_complaints HTTP/1.1" 200 -
+2025-06-24 10:55:18,111 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:55:39,061 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:39] "[32mGET / HTTP/1.1[0m" 302 -
+2025-06-24 10:55:39,108 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:39] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:55:39,136 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:39] "GET /static/style.css HTTP/1.1" 200 -
+2025-06-24 10:55:39,251 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:39] "GET /static/narendra-modi-india-flag-.webp HTTP/1.1" 200 -
+2025-06-24 10:55:39,638 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:39] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-24 10:55:46,840 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:46] "[32mGET / HTTP/1.1[0m" 302 -
+2025-06-24 10:55:46,846 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:46] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:55:46,866 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:55:46,937 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:46] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:55:48,576 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:48] "[32mGET /tools HTTP/1.1[0m" 302 -
+2025-06-24 10:55:48,581 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:48] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:55:48,595 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:55:48,662 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:48] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:55:57,852 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:57] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:55:57,865 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:55:57,929 - INFO - 127.0.0.1 - - [24/Jun/2025 10:55:57] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:56:23,390 - INFO - FakeTensor cache stats:
+2025-06-24 10:56:23,390 - INFO -   cache_hits: 0
+2025-06-24 10:56:23,390 - INFO -   cache_misses: 0
+2025-06-24 10:56:33,289 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 10:56:33,289 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 10:56:33,290 - INFO -  * Restarting with stat
+2025-06-24 10:56:38,891 - WARNING -  * Debugger is active!
+2025-06-24 10:56:38,893 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 10:56:39,054 - INFO - 127.0.0.1 - - [24/Jun/2025 10:56:39] "GET / HTTP/1.1" 200 -
+2025-06-24 10:56:39,106 - INFO - 127.0.0.1 - - [24/Jun/2025 10:56:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:56:39,492 - INFO - 127.0.0.1 - - [24/Jun/2025 10:56:39] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:56:39,562 - INFO - 127.0.0.1 - - [24/Jun/2025 10:56:39] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 10:56:48,280 - INFO - 127.0.0.1 - - [24/Jun/2025 10:56:48] "[32mGET / HTTP/1.1[0m" 302 -
+2025-06-24 10:56:48,286 - INFO - 127.0.0.1 - - [24/Jun/2025 10:56:48] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:56:48,311 - INFO - 127.0.0.1 - - [24/Jun/2025 10:56:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:56:48,383 - INFO - 127.0.0.1 - - [24/Jun/2025 10:56:48] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:57:00,563 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:00] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:57:00,589 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:57:00,663 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:00] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:57:03,251 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:03] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-06-24 10:57:03,256 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:03] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:57:03,280 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:03] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:57:03,353 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:03] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:57:04,375 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:04] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-06-24 10:57:04,382 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:04] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:57:04,408 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:57:04,487 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:04] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:57:04,876 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:04] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-06-24 10:57:04,880 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:04] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:57:04,910 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:57:04,983 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:04] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 10:57:05,223 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:05] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-06-24 10:57:05,227 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:05] "GET /login HTTP/1.1" 200 -
+2025-06-24 10:57:05,254 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 10:57:05,326 - INFO - 127.0.0.1 - - [24/Jun/2025 10:57:05] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 11:05:00,236 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 11:05:00,237 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 11:05:00,238 - INFO -  * Restarting with stat
+2025-06-24 11:05:05,067 - WARNING -  * Debugger is active!
+2025-06-24 11:05:05,069 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 11:05:05,234 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:05] "[32mGET / HTTP/1.1[0m" 302 -
+2025-06-24 11:05:05,291 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:05] "GET /login HTTP/1.1" 200 -
+2025-06-24 11:05:05,341 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:05:12,645 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:12] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-06-24 11:05:12,701 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:12] "GET / HTTP/1.1" 200 -
+2025-06-24 11:05:12,733 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:12] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:05:13,025 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:13] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 11:05:13,064 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:13] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 11:05:15,990 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:15] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-06-24 11:05:15,996 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:15] "GET /login HTTP/1.1" 200 -
+2025-06-24 11:05:16,025 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:05:18,661 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:18] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-06-24 11:05:18,668 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:18] "GET / HTTP/1.1" 200 -
+2025-06-24 11:05:18,698 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:05:18,956 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:18] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 11:05:18,970 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:18] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 11:05:29,193 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-24 11:05:29,388 - INFO - ONNX model loaded successfully.
+2025-06-24 11:05:29,473 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:29] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-24 11:05:29,480 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:29] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 11:05:34,497 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:34] "GET /my_complaints HTTP/1.1" 200 -
+2025-06-24 11:05:34,521 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:34] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:05:57,753 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:57] "[32mGET / HTTP/1.1[0m" 302 -
+2025-06-24 11:05:57,759 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:57] "GET /login HTTP/1.1" 200 -
+2025-06-24 11:05:57,788 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:05:58,187 - INFO - 127.0.0.1 - - [24/Jun/2025 11:05:58] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-24 11:06:04,758 - INFO - 127.0.0.1 - - [24/Jun/2025 11:06:04] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-06-24 11:06:04,768 - INFO - 127.0.0.1 - - [24/Jun/2025 11:06:04] "[35m[1mGET /admin HTTP/1.1[0m" 500 -
+2025-06-24 11:06:04,799 - INFO - 127.0.0.1 - - [24/Jun/2025 11:06:04] "GET /admin?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-06-24 11:06:04,799 - INFO - 127.0.0.1 - - [24/Jun/2025 11:06:04] "GET /admin?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-06-24 11:06:04,825 - INFO - 127.0.0.1 - - [24/Jun/2025 11:06:04] "GET /admin?__debugger__=yes&cmd=resource&f=console.png&s=6EtzcehszKIBlivKxhz1 HTTP/1.1" 200 -
+2025-06-24 11:06:04,896 - INFO - 127.0.0.1 - - [24/Jun/2025 11:06:04] "GET /admin?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-06-24 11:16:23,785 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-24 11:16:23,785 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-24 11:16:23,786 - INFO -  * Restarting with stat
+2025-06-24 11:16:29,536 - WARNING -  * Debugger is active!
+2025-06-24 11:16:29,540 - INFO -  * Debugger PIN: 213-494-395
+2025-06-24 11:16:29,704 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:29] "GET / HTTP/1.1" 200 -
+2025-06-24 11:16:29,748 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:29] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:16:30,146 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:30] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 11:16:30,221 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:30] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 11:16:31,335 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:31] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-06-24 11:16:31,344 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:31] "GET /login HTTP/1.1" 200 -
+2025-06-24 11:16:31,369 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:16:35,419 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:35] "POST /login HTTP/1.1" 200 -
+2025-06-24 11:16:35,445 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:16:39,753 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:39] "GET /signup HTTP/1.1" 200 -
+2025-06-24 11:16:39,776 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:16:44,252 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:44] "[32mPOST /signup HTTP/1.1[0m" 302 -
+2025-06-24 11:16:44,258 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:44] "GET /login HTTP/1.1" 200 -
+2025-06-24 11:16:44,291 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:44] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:16:46,465 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:46] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-06-24 11:16:46,472 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:46] "GET / HTTP/1.1" 200 -
+2025-06-24 11:16:46,509 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:16:46,804 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:46] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 11:16:46,815 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:46] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 11:16:55,316 - INFO - Loading model from pothole_detector_v1.onnx
+2025-06-24 11:16:55,492 - INFO - ONNX model loaded successfully.
+2025-06-24 11:16:55,594 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:55] "POST /detect_pothole HTTP/1.1" 200 -
+2025-06-24 11:16:55,605 - INFO - 127.0.0.1 - - [24/Jun/2025 11:16:55] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 11:17:11,130 - INFO - 127.0.0.1 - - [24/Jun/2025 11:17:11] "GET /my_complaints HTTP/1.1" 200 -
+2025-06-24 11:17:11,153 - INFO - 127.0.0.1 - - [24/Jun/2025 11:17:11] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:17:12,693 - INFO - 127.0.0.1 - - [24/Jun/2025 11:17:12] "GET /complaints HTTP/1.1" 200 -
+2025-06-24 11:17:12,715 - INFO - 127.0.0.1 - - [24/Jun/2025 11:17:12] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:17:19,009 - INFO - 127.0.0.1 - - [24/Jun/2025 11:17:19] "GET / HTTP/1.1" 200 -
+2025-06-24 11:17:19,032 - INFO - 127.0.0.1 - - [24/Jun/2025 11:17:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:17:19,274 - INFO - 127.0.0.1 - - [24/Jun/2025 11:17:19] "[36mGET /static/narendra-modi-india-flag-.webp HTTP/1.1[0m" 304 -
+2025-06-24 11:17:19,286 - INFO - 127.0.0.1 - - [24/Jun/2025 11:17:19] "[33mGET /pothole_stats HTTP/1.1[0m" 404 -
+2025-06-24 11:18:00,655 - INFO - 127.0.0.1 - - [24/Jun/2025 11:18:00] "POST /raise_complaint HTTP/1.1" 200 -
+2025-06-24 11:18:02,711 - WARNING - Could not parse timestamp for complaint ID 1: 2025-06-24 05:48:00
+2025-06-24 11:18:02,715 - INFO - 127.0.0.1 - - [24/Jun/2025 11:18:02] "GET /my_complaints HTTP/1.1" 200 -
+2025-06-24 11:18:02,745 - INFO - 127.0.0.1 - - [24/Jun/2025 11:18:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:18:04,341 - INFO - 127.0.0.1 - - [24/Jun/2025 11:18:04] "[35m[1mGET /complaints HTTP/1.1[0m" 500 -
+2025-06-24 11:18:04,362 - INFO - 127.0.0.1 - - [24/Jun/2025 11:18:04] "[36mGET /complaints?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-06-24 11:18:04,363 - INFO - 127.0.0.1 - - [24/Jun/2025 11:18:04] "[36mGET /complaints?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-06-24 11:18:04,394 - INFO - 127.0.0.1 - - [24/Jun/2025 11:18:04] "GET /complaints?__debugger__=yes&cmd=resource&f=console.png&s=QxyQ8V5vUoRnaj4nLivH HTTP/1.1" 200 -
+2025-06-24 11:18:04,411 - INFO - 127.0.0.1 - - [24/Jun/2025 11:18:04] "[36mGET /complaints?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2025-06-24 11:25:05,765 - INFO -  * Detected change in 'C:\\Users\\devgu\\OneDrive\\Desktop\\eNivaran_hackathon_project-main\\flask_app.py', reloading
+2025-06-24 11:25:06,651 - INFO -  * Restarting with stat

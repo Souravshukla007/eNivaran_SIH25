@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>eNivaran - Civic Issue Reporting Tools</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="app-root"></div>
+
+    {% raw %}
+    <script type="text/babel" src="/static/app.js"></script>
+    {% endraw %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- AI Chatbot Start -->
+    <div class="chatbot-fab" id="chatbot-fab">
+        <i class="bi bi-robot"></i>
+    </div>
+    <div class="chatbot-popup" id="chatbot-popup">
+        <div class="chatbot-header">
+            <span>eNivaran J.A.R.V.I.S</span>
+            <div class="actions">
+                <button id="chatbot-new-chat" title="New Chat"><i class="bi bi-plus-square"></i></button>
+                <button id="chatbot-close" title="Close"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chatbot-input">
+            <input type="file" id="chatbot-file-input" style="display: none;" accept="image/*,application/pdf">
+            <button class="upload-btn" id="chatbot-upload-btn" title="Upload File"><i class="bi bi-paperclip"></i></button>
+            <input type="text" id="chatbot-input-field" placeholder="Ask a question..." autocomplete="off">
+            <button class="send-btn" id="chatbot-send-btn"><i class="bi bi-send"></i></button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fab = document.getElementById('chatbot-fab');
+            const popup = document.getElementById('chatbot-popup');
+            const closeBtn = document.getElementById('chatbot-close');
+            const newChatBtn = document.getElementById('chatbot-new-chat');
+            const messagesContainer = document.getElementById('chatbot-messages');
+            const inputField = document.getElementById('chatbot-input-field');
+            const sendBtn = document.getElementById('chatbot-send-btn');
+            const uploadBtn = document.getElementById('chatbot-upload-btn');
+            const fileInput = document.getElementById('chatbot-file-input');
+
+            const storageKey = 'chatbot_history_user_guest';
+            let conversation = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+            fab.addEventListener('click', () => popup.classList.toggle('open'));
+            closeBtn.addEventListener('click', () => popup.classList.remove('open'));
+
+            const addMessage = (text, sender, type = 'text') => {
+                const messageDiv = document.createElement('div');
+                if (type === 'typing') {
+                    messageDiv.className = 'chat-message-ai typing';
+                    messageDiv.textContent = 'AI is typing...';
+                    messageDiv.id = 'typing-indicator';
+                } else if (type === 'file') {
+                    messageDiv.className = 'chat-message-user';
+                    messageDiv.innerHTML = `<div class="chat-message-file-preview"><i class="bi bi-file-earmark-check"></i> <span>${text}</span></div>`;
+                } else {
+                    messageDiv.className = `chat-message-${sender}`;
+                    // Use innerHTML for AI to render lists, otherwise use textContent for security
+                    if (sender === 'ai') {
+                        messageDiv.innerHTML = formatResponseAsHTML(text);
+                    } else {
+                        messageDiv.textContent = text;
+                    }
+                }
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                return messageDiv;
+            };
+
+            const saveConversation = () => localStorage.setItem(storageKey, JSON.stringify(conversation));
+            const loadConversation = () => {
+                messagesContainer.innerHTML = '';
+                conversation.forEach(msg => addMessage(msg.text, msg.sender, msg.type));
+            };
+
+            // --- START: NEW HELPER FUNCTION ---
+            const formatResponseAsHTML = (text) => {
+                // Converts lines starting with * or - into an HTML list.
+                let html = '';
+                const lines = text.split('\n');
+                let inList = false;
+
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    // Check for markdown-style list items
+                    if (trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ')) {
+                        if (!inList) {
+                            html += '<ul>'; // Start the list
+                            inList = true;
+                        }
+                        html += `<li>${trimmedLine.substring(2)}</li>`; // Add the list item
+                    } else {
+                        if (inList) {
+                            html += '</ul>'; // End the list
+                            inList = false;
+                        }
+                        if (trimmedLine) {
+                            html += `<p>${trimmedLine}</p>`; // Wrap non-list lines in paragraphs
+                        }
+                    }
+                }
+
+                if (inList) { // Close any open list at the end
+                    html += '</ul>';
+                }
+                return html;
+            };
+            // --- END: NEW HELPER FUNCTION ---
+
+            const handleSendMessage = async () => {
+                const text = inputField.value.trim();
+                if (!text) return;
+
+                addMessage(text, 'user');
+                conversation.push({ sender: 'user', text: text, type: 'text' });
+                saveConversation();
+                inputField.value = '';
+                
+                addMessage('', 'ai', 'typing');
+
+                try {
+                    const response = await fetch('/chat/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ history: conversation.slice(0, -1), message: text })
+                    });
+                    
+                    document.getElementById('typing-indicator')?.remove();
+                    
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || 'Failed to get AI response.');
+                    }
+                    
+                    const data = await response.json();
+                    addMessage(data.response, 'ai');
+                    conversation.push({ sender: 'ai', text: data.response, type: 'text' });
+                    saveConversation();
+                } catch (error) {
+                    addMessage(`Error: ${error.message}`, 'ai');
+                }
+            };
+
+            const handleFileUpload = async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const fileMsg = addMessage(`Uploading ${file.name}...`, 'user', 'file');
+
+                try {
+                    const response = await fetch('/upload_chat_file', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error('Upload failed.');
+                    
+                    const data = await response.json();
+                    fileMsg.querySelector('span').textContent = data.message;
+                    const userMsgText = `I have uploaded a file named: ${data.filename}. Please acknowledge it.`;
+                    
+                    conversation.push({ sender: 'user', text: userMsgText, type: 'text' });
+                    saveConversation();
+                    
+                    addMessage('', 'ai', 'typing');
+                    
+                    const aiResponse = await fetch('/chat/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ history: conversation.slice(0, -1), message: userMsgText })
+                    });
+                    
+                    document.getElementById('typing-indicator')?.remove();
+                    
+                    if (!aiResponse.ok) throw new Error('AI response failed after upload.');
+                    const aiData = await aiResponse.json();
+                    addMessage(aiData.response, 'ai');
+                    conversation.push({ sender: 'ai', text: aiData.response, type: 'text' });
+                    saveConversation();
+                    
+                } catch (error) {
+                    fileMsg.querySelector('span').textContent = `Error: ${error.message}`;
+                    fileMsg.style.backgroundColor = '#f8d7da';
+                    fileMsg.style.color = '#721c24';
+                }
+            };
+
+            sendBtn.addEventListener('click', handleSendMessage);
+            inputField.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                    e.target.value = ''; // Reset file input
+                }
+            });
+            newChatBtn.addEventListener('click', () => {
+                if (confirm('Are you sure? This will clear the chat history.')) {
+                    conversation = [];
+                    saveConversation();
+                    loadConversation();
+                    const greeting = "Hello! I'm the eNivaran J.A.R.V.I.S. How can I help you today?";
+                    addMessage(greeting, 'ai');
+                    conversation.push({ sender: 'ai', text: greeting, type: 'text' });
+                    saveConversation();
+                }
+            });
+
+            loadConversation();
+            if (conversation.length === 0) {
+                const greeting = "Hello! I'm the eNivaran J.A.R.V.I.S. How can I help you today?";
+                addMessage(greeting, 'ai');
+                conversation.push({ sender: 'ai', text: greeting, type: 'text' });
+                saveConversation();
+            }
+        });
+    </script>
+    <!-- AI Chatbot End -->
+</body>
+</html>

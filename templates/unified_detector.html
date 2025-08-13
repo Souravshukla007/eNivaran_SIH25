@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Pothole Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #444; text-align: center; }
+        .detector-section {
+            margin-top: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        form { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        input[type="text"] { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        button { padding: 12px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
+        button:hover { background-color: #0056b3; }
+        #results-container { margin-top: 30px; text-align: center; }
+        .image-display { display: flex; justify-content: space-around; gap: 20px; margin-top: 20px; }
+        .image-container { width: 48%; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background: #fafafa; }
+        .image-container h4 { margin-top: 0; color: #555; }
+        .image-container img { width: 100%; height: auto; border-radius: 4px; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message { color: #d9534f; font-weight: bold; }
+        .no-results { color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('admin_dashboard') }}">&larr; Back to Admin Dashboard</a>
+        <h1>Unified Pothole Detector</h1>
+
+        <!-- Section 1: Street View Detector -->
+        <div class="detector-section">
+            <h2>Street View Pothole Detector</h2>
+            <p>Enter a street address to find and detect potholes using KartaView imagery.</p>
+            <form id="street-view-form">
+                <input type="text" id="address" name="address" placeholder="e.g., MG Road, Bangalore" required style="width: 70%; padding: 8px;">
+                <button type="submit" style="padding: 8px;">Detect from Street View</button>
+            </form>
+            <div id="street-view-results"></div>
+        </div>
+
+        <!-- Section 2: Admin Pothole Inspector -->
+        <div class="detector-section">
+            <h2>Admin Pothole Inspector</h2>
+            <p>Enter a full address to fetch the nearest street-level image from KartaView and run the pothole detection model.</p>
+            <form id="address-form">
+                <input type="text" id="street" name="street" placeholder="Street Name" required>
+                <input type="text" id="city" name="city" placeholder="City" required>
+                <input type="text" id="pincode" name="pincode" placeholder="Pincode" required>
+                <button type="submit">Detect from Address</button>
+            </form>
+            <div id="admin-inspector-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Handler for Street View Detector
+        document.getElementById('street-view-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const address = document.getElementById('address').value;
+            const resultsContainer = document.getElementById('street-view-results');
+            resultsContainer.innerHTML = '<div class="loader"></div><p>Loading... This may take a moment.</p>';
+
+            try {
+                const response = await fetch('/api/detect_from_kartaview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: address })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'An unknown error occurred.');
+                }
+                
+                resultsContainer.innerHTML = '';
+
+                if (data.frames && data.frames.length > 0) {
+                    const header = document.createElement('h2');
+                    header.textContent = `Found ${data.frames.length} images for sequence ${data.sequenceId}`;
+                    resultsContainer.appendChild(header);
+
+                    data.frames.forEach(frame => {
+                        const frameElement = document.createElement('div');
+                        frameElement.classList.add('result-frame');
+                        
+                        let detections_html = 'No potholes detected.';
+                        let detections_obj = frame.detections;
+                        if(detections_obj && detections_obj.potholes && detections_obj.potholes.length > 0){
+                            detections_html = '<ul>';
+                            detections_obj.potholes.forEach(p => {
+                                detections_html += `<li>Confidence: ${p.confidence.toFixed(2)}, Box: [${p.box.join(', ')}]</li>`;
+                            });
+                            detections_html += '</ul>';
+                        }
+
+                        frameElement.innerHTML = `
+                            <div class="images">
+                                <div class="image-container">
+                                    <h4>Original Image</h4>
+                                    <img src="${frame.raw_image_url}" alt="Original KartaView Image">
+                                    <small>Captured at: ${new Date(frame.captured_at).toLocaleString()}</small>
+                                </div>
+                                <div class="image-container">
+                                    <h4>Annotated Image</h4>
+                                    <img src="${frame.annotated_image_url}" alt="Annotated Pothole Image">
+                                </div>
+                            </div>
+                            <div>
+                                <h4>Detection Results</h4>
+                                ${detections_html}
+                            </div>
+                        `;
+                        resultsContainer.appendChild(frameElement);
+                    });
+                } else {
+                    resultsContainer.innerHTML = '<p class="no-results">No KartaView imagery found for this location, or no potholes were detected in the available images.</p>';
+                }
+
+            } catch (error) {
+                resultsContainer.innerHTML = `<p class="error-message"><strong>Error:</strong> ${error.message}</p>`;
+            }
+        });
+
+        // Handler for Admin Pothole Inspector
+        document.getElementById('address-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const street = document.getElementById('street').value;
+            const city = document.getElementById('city').value;
+            const pincode = document.getElementById('pincode').value;
+            const resultsContainer = document.getElementById('admin-inspector-results');
+            
+            resultsContainer.innerHTML = '<div class="loader"></div><p>Fetching and analyzing image... Please wait.</p>';
+
+            try {
+                const response = await fetch('/api/admin/detect_from_address', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ street, city, pincode })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'An unknown server error occurred.');
+                }
+
+                if (data.error) {
+                     resultsContainer.innerHTML = `<p class="error-message">${data.error}</p>`;
+                     return;
+                }
+
+                let detections_html = 'No potholes detected.';
+                if (data.detections && data.detections.potholes && data.detections.potholes.length > 0) {
+                    detections_html = '<ul>';
+                    data.detections.potholes.forEach(p => {
+                        detections_html += `<li>Confidence: ${p.confidence.toFixed(2)}, Box: [${p.box.join(', ')}]</li>`;
+                    });
+                    detections_html += '</ul>';
+                }
+
+                resultsContainer.innerHTML = `
+                    <div class="image-display">
+                        <div class="image-container">
+                            <h4>Original Image</h4>
+                            <img src="${data.raw_image_url}" alt="Original KartaView Image">
+                            <small>Captured at: ${new Date(data.captured_at).toLocaleString()}</small>
+                        </div>
+                        <div class="image-container">
+                            <h4>Annotated Image</h4>
+                            <img src="${data.annotated_image_url}" alt="Annotated Pothole Image">
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Detection Results</h3>
+                        ${detections_html}
+                    </div>
+                `;
+
+            } catch (error) {
+                resultsContainer.innerHTML = `<p class="error-message"><strong>Error:</strong> ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
