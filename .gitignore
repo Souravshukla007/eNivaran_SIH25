@@ -1,3 +1,25 @@
 venv/
 firebase-service-account.json
 .env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+*.log.*
+
+# Local databases
+*.db
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Processed videos
+processed_videos/
+
+# VS Code
+.vscode/
