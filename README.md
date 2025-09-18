@@ -4,7 +4,7 @@ eNivaran is an ML-powered road safety and civic issue reporting system designed 
 
 ## Core Functionalities
 
-*   **AI Pothole Detection:** Upload an image to the 'Tools' section to automatically detect potholes using a pre-trained ONNX model (`pothole_detector_v1.onnx`). The system analyzes depth, estimates severity, and provides road condition assessment with annotated visualizations.
+*   **AI Pothole Detection:** Upload an image to the 'Tools' section to automatically detect potholes using a pre-trained Pytorch model (`pothole_detector_v1.onnx`). The system analyzes depth, estimates severity, and provides road condition assessment with annotated visualizations.
 
 *   **AI Video Analysis:** Upload a video of a road to the 'Tools' section to get a frame-by-frame analysis. The system uses the `pothole_detector_v1.onnx` model to:
     *   Identify potholes in each frame.
