@@ -20,6 +20,13 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    {% if just_logged_in %}
+    <div id="welcome-popup">
+        <img src="/static/namaskar-modi.gif" alt="Welcome">
+        <p class="modiji">Welcome back {{ username_clean }}</p>
+    </div>
+    {% endif %}
+
     <div id="app-root"></div>
 
     {% raw %}
@@ -505,6 +512,16 @@
                 saveConversation();
             }
         });
+    </script>
+
+    <script>
+        // Auto-hide welcome popup after 2 seconds
+        setTimeout(function() {
+            const popup = document.getElementById('welcome-popup');
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }, 2000);
     </script>
 </body>
 </html>

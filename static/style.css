@@ -1041,4 +1041,31 @@ body.auth-page {
     background: #6f42c1;
     color: white;
 }
+/* --- Welcome Popup Styles --- */
+#welcome-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    text-align: center;
+}
+
+#welcome-popup img {
+    width: 500px;
+    height: 300px;
+    margin-bottom: 10px;
+}
+
+.modiji{
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+/* --- END: Welcome Popup Styles --- */
+
 /* --- END: New Auth Page Styles --- */

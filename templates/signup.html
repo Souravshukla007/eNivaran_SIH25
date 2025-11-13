@@ -53,6 +53,12 @@
             <button type="submit" class="auth-button" style="margin-top: 20px;">Sign Up</button>
         </form>
 
+        <div class="separator">or Sign Up with</div>
+
+        <div class="social-login">
+            <a href="{{ url_for('oauth_google_login') }}" class="social-icon"><i class="fa-brands fa-google"></i></a>
+        </div>
+
         <h4 class="auth-link">Already have an account? <a href="{{ url_for('login') }}">Login</a></h4>
     </div>
 

@@ -37,17 +37,17 @@
                 <input type="radio" id="adminLogin" name="loginType" value="admin">
                 <label for="adminLogin">Admin</label>
             </div>
-            
+
             <div class="input-group">
                 <i class="fa-solid fa-circle-user"></i>
                 <input type="text" id="username" name="username" required placeholder="Username" autocomplete="username">
             </div>
-            
+
             <div class="input-group">
                 <i class="fa fa-key"></i>
                 <input type="password" id="password" name="password" required placeholder="Password" autocomplete="current-password">
             </div>
-            
+
             <div class="options">
                 <label class="remember-me">
                     <input type="checkbox">Remember me
@@ -58,17 +58,28 @@
             <button type="submit" class="auth-button">Login</button>
         </form>
 
-        <div class="separator">or Log In with</div>
+        <div class="separator google-login" id="googleLoginSeparator" style="display: block;">or Log In with</div>
 
-        <div class="social-login">
-            <a href="#" class="social-icon"><i class="fa-brands fa-facebook"></i></a>
-            <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#" class="social-icon"><i class="fa-brands fa-google"></i></a>
-            <a href="#" class="social-icon"><i class="fa-brands fa-linkedin"></i></a>
+        <div class="social-login google-login" id="googleLoginDiv" style="display: block;">
+            <a href="{{ url_for('oauth_google_login') }}" class="social-icon"><i class="fa-brands fa-google"></i></a>
         </div>
 
         <h4 class="auth-link">Don't have an account yet? <a href="{{ url_for('signup') }}">Sign Up</a></h4>
     </div>
 
+    <script>
+        document.getElementById('userLogin').addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('googleLoginSeparator').style.display = 'block';
+                document.getElementById('googleLoginDiv').style.display = 'block';
+            }
+        });
+        document.getElementById('adminLogin').addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('googleLoginSeparator').style.display = 'none';
+                document.getElementById('googleLoginDiv').style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>

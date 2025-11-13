@@ -17,6 +17,14 @@ import google.generativeai as genai
 from google.auth.exceptions import RefreshError
 import cv2  # Import OpenCV
 import numpy as np # Import numpy
+from authlib.integrations.flask_client import OAuth
+from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderServiceError
+
+from pothole_detection import run_pothole_detection, assess_road_video
+from duplication_detection_code import get_duplicate_detector
 
 # Load environment variables from .env file
 load_dotenv()
@@ -74,6 +82,7 @@ class CustomJSONEncoder(DefaultJSONProvider):
             print(f"JSON loads error: {e}")
             return None
 
+from authlib.integrations.flask_client import OAuth
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from geopy.geocoders import Nominatim
@@ -84,6 +93,17 @@ from duplication_detection_code import get_duplicate_detector
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-replace-later'
+
+# OAuth setup
+oauth = OAuth(app)
+
+google = oauth.register(
+    name='google',
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'}
+)
 
 # --- Firebase Initialization ---
 # Check for the existence of the service account file and provide a clear warning if it's missing.
@@ -262,7 +282,9 @@ def login_required(f):
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    import re
+    username_clean = re.sub(r'[^a-zA-Z]', '', session.get('username', ''))
+    return render_template('index.html', just_logged_in=session.pop('just_logged_in', False), username_clean=username_clean)
 
 @app.route('/tools')
 @login_required
@@ -353,7 +375,7 @@ def init_database():
         conn.execute('PRAGMA foreign_keys = ON')
         c = conn.cursor()
         # Existing tables...
-        c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, full_name TEXT, password_hash TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, full_name TEXT, password_hash TEXT, provider TEXT DEFAULT 'local', google_id TEXT UNIQUE, email TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
         c.execute('''CREATE TABLE IF NOT EXISTS complaints (id INTEGER PRIMARY KEY, text TEXT, location_lat REAL, location_lon REAL, city TEXT, issue_type TEXT, image BLOB, image_filename TEXT, submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, is_duplicate INTEGER DEFAULT 0, original_report_id INTEGER, user_id INTEGER, status TEXT DEFAULT 'Submitted', upvotes INTEGER DEFAULT 0, remarks TEXT DEFAULT 'Complaint sent for supervision.', FOREIGN KEY (user_id) REFERENCES users (id), FOREIGN KEY (original_report_id) REFERENCES complaints (id))''')
         
         # --- CORRECTED: Create feedback table with schema migration checks ---
@@ -404,6 +426,15 @@ def init_database():
         if 'role' not in columns:
             app.logger.info("Adding 'role' column to 'users' table.")
             c.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
+        if 'provider' not in columns:
+            app.logger.info("Adding 'provider' column to 'users' table.")
+            c.execute("ALTER TABLE users ADD COLUMN provider TEXT DEFAULT 'local'")
+        if 'google_id' not in columns:
+            app.logger.info("Adding 'google_id' column to 'users' table.")
+            c.execute("ALTER TABLE users ADD COLUMN google_id TEXT")
+        if 'email' not in columns:
+            app.logger.info("Adding 'email' column to 'users' table.")
+            c.execute("ALTER TABLE users ADD COLUMN email TEXT")
         
         # --- THIS IS THE FIX ---
         # Check if the columns in the 'feedback' table exist and add them if they don't.
@@ -510,6 +541,54 @@ def serve_processed_video(filename):
 def static_files(filename):
     return send_from_directory('static', filename)
 
+
+@app.route('/oauth/google/login')
+def oauth_google_login():
+    if 'user_id' in session:
+        return redirect(url_for('index'))
+    return google.authorize_redirect(redirect_uri=url_for('oauth_google_authorize', _external=True))
+
+
+@app.route('/oauth/google/authorize')
+def oauth_google_authorize():
+    token = google.authorize_access_token()
+    # Fetch userinfo from Google API
+    userinfo_resp = google.get('https://www.googleapis.com/oauth2/v2/userinfo', token=token)
+    if userinfo_resp.status_code != 200:
+        flash('Failed to fetch user information.', 'error')
+        return redirect(url_for('login'))
+    userinfo = userinfo_resp.json()
+
+    google_id = userinfo.get('sub')
+    email = userinfo.get('email')
+    full_name = userinfo.get('name')
+
+    if not google_id or not email:
+        flash('Invalid user information from Google. Please try again.', 'error')
+        return redirect(url_for('login'))
+
+    with sqlite3.connect(APP_DB) as conn:
+        conn.row_factory = dict_factory
+        user = conn.execute('SELECT * FROM users WHERE google_id = ?', (google_id,)).fetchone()
+
+        if not user:
+            # Create new user
+            conn.execute('INSERT INTO users (username, full_name, provider, google_id, email) VALUES (?, ?, ?, ?, ?)',
+                        (email, full_name, 'google', google_id, email))
+            user = conn.execute('SELECT * FROM users WHERE google_id = ?', (google_id,)).fetchone()
+            conn.commit()
+
+        # Set session
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        session['role'] = user['role']
+        session['is_admin'] = user['role'] in ['admin', 'higher_admin']
+        session['is_higher_admin'] = user['role'] == 'higher_admin'
+        session['just_logged_in'] = True
+
+        flash(f'Welcome, {user["full_name"]}!', 'success')
+        return redirect(url_for('index'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:
@@ -526,6 +605,7 @@ def login():
             session['role'] = user['role']
             session['is_admin'] = user['role'] in ['admin', 'higher_admin']
             session['is_higher_admin'] = user['role'] == 'higher_admin'
+            session['just_logged_in'] = True
             flash(f'Welcome back, {user["full_name"]}!', 'success')
             if session['is_admin']:
                 return redirect(url_for('admin_dashboard'))
@@ -1423,11 +1503,12 @@ def get_leaderboard_data():
                     SELECT
                         u.id,
                         u.full_name,
+                        u.role,
                         COALESCE((
-                            SELECT 
-                                (CAST(COALESCE(SUM(CASE WHEN c.is_duplicate = 0 THEN 1 ELSE 0 END), 0) AS REAL) * 15) + 
+                            SELECT
+                                (CAST(COALESCE(SUM(CASE WHEN c.is_duplicate = 0 THEN 1 ELSE 0 END), 0) AS REAL) * 15) +
                                 (CAST(COALESCE(SUM(c.upvotes), 0) AS REAL) * 2)
-                            FROM complaints c 
+                            FROM complaints c
                             WHERE c.user_id = u.id
                         ), 0) as points,
                         (SELECT COUNT(*) FROM complaints WHERE user_id = u.id AND (is_duplicate = 0 OR is_duplicate IS NULL)) as total_complaints,
@@ -1441,7 +1522,7 @@ def get_leaderboard_data():
                 SELECT *,
                        (SELECT COUNT(*) + 1 FROM UserStats s2 WHERE s2.points > s1.points) as rank
                 FROM UserStats s1
-                WHERE s1.points > 0
+                WHERE s1.points > 0 AND s1.role NOT IN ('admin', 'higher_admin')
                 ORDER BY s1.points DESC, s1.total_complaints DESC, s1.total_votes DESC;
             """
             top_users = cursor.execute(leaderboard_query).fetchall()

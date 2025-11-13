@@ -62,32 +62,51 @@
                     });
             }, []);
 
+            const showStanding = data && data.currentUser && data.currentUser.role !== 'admin' && data.currentUser.role !== 'higher_admin';
+
             const isUserInTopList = data && data.leaderboard.some(u => u.id === data.currentUser.id);
 
             return (
                 <React.Fragment>
-                    {/* Navbar (Copy from another page like complaints.html if needed) */}
-                    <nav className="navbar navbar-expand-lg navbar-light sticky-top bg-light shadow-sm">
-                        <div className="container-fluid">
-                            <a className="navbar-brand" href="/">
-                                <img src="/static/modiji.png" alt="eNivaran Logo" style={{height: "50px"}} />
-                                eNivaran
-                            </a>
-                            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                                <span className="navbar-toggler-icon"></span>
-                            </button>
-                            <div className="collapse navbar-collapse" id="navbarNav">
-                                <ul className="navbar-nav ms-auto">
-                                   <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
-                                   <li className="nav-item"><a className="nav-link" href="/complaints">Complaints</a></li>
-                                   <li className="nav-item"><a className="nav-link" href="/my_complaints">My Complaints</a></li>
-                                   <li className="nav-item"><a className="nav-link" href="/tools">Tools</a></li>
-                                   <li className="nav-item"><a className="nav-link" href="/leaderboard">Leaderboard</a></li>
-                                   <li className="nav-item"><a className="nav-link" href="/logout">Logout</a></li>
-                                </ul>
+                    {/* Navbar */}
+                    {data && data.currentUser && (data.currentUser.role === 'admin' || data.currentUser.role === 'higher_admin') ? (
+                        <nav className="navbar navbar-expand-lg navbar-light sticky-top bg-light shadow-sm">
+                            <div className="container-fluid">
+                                <a className="navbar-brand" href="/">
+                                    <img src="/static/modiji.png" alt="eNivaran Logo" style={{height: "50px"}} />
+                                    eNivaran
+                                </a>
+                                <div className="collapse navbar-collapse" id="navbarNav">
+                                    <ul className="navbar-nav ms-auto">
+                                       <li className="nav-item"><a className="nav-link" href="/admin">Back</a></li>
+                                       <li className="nav-item"><a className="nav-link" href="/logout">Logout</a></li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                    </nav>
+                        </nav>
+                    ) : (
+                        <nav className="navbar navbar-expand-lg navbar-light sticky-top bg-light shadow-sm">
+                            <div className="container-fluid">
+                                <a className="navbar-brand" href="/">
+                                    <img src="/static/modiji.png" alt="eNivaran Logo" style={{height: "50px"}} />
+                                    eNivaran
+                                </a>
+                                <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                                    <span className="navbar-toggler-icon"></span>
+                                </button>
+                                <div className="collapse navbar-collapse" id="navbarNav">
+                                    <ul className="navbar-nav ms-auto">
+                                       <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
+                                       <li className="nav-item"><a className="nav-link" href="/complaints">Complaints</a></li>
+                                       <li className="nav-item"><a className="nav-link" href="/my_complaints">My Complaints</a></li>
+                                       <li className="nav-item"><a className="nav-link" href="/tools">Tools</a></li>
+                                       <li className="nav-item"><a className="nav-link" href="/leaderboard">Leaderboard</a></li>
+                                       <li className="nav-item"><a className="nav-link" href="/logout">Logout</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+                    )}
 
                     <div className="container py-5">
                         <h1 className="display-5 fw-bold text-center mb-4"><i className="bi bi-trophy-fill text-warning me-2"></i>User Leaderboard</h1>
@@ -97,7 +116,7 @@
                         
                         {data && (
                             <div>
-                                {/* Current User's Standing Card */}
+                                { showStanding ? (
                                 <div className="card shadow-sm mb-5 border-primary border-2">
                                     <div className="card-header bg-primary text-white">
                                         <h5 className="mb-0"><i className="bi bi-person-circle me-2"></i>Your Standing</h5>
@@ -112,6 +131,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                ) : null }
                                 
                                 {/* Leaderboard Table */}
                                 <div className="card shadow-sm">
@@ -144,7 +164,7 @@
                                                             );
                                                         })}
 
-                                                        {!isUserInTopList && (
+                                                        {!isUserInTopList && data.currentUser.role !== 'admin' && data.currentUser.role !== 'higher_admin' && (
                                                             <tr className="highlight-current-user">
                                                                 <td>#{data.currentUser.rank}</td>
                                                                 <td>{data.currentUser.full_name} (You)</td>
